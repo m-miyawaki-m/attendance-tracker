@@ -1,0 +1,453 @@
+@startuml 全体フロー（役割別）
+
+title 勤怠管理システム - 全体フロー（役割別）
+
+start
+
+:アプリ起動;
+
+if (認証状態確認) then (未認証)
+  :ログイン画面\n/login;
+  :メールアドレス\nパスワード入力;
+
+  if (モックアカウント自動入力) then (管理者)
+    :admin@example.com\n自動入力;
+  elseif (一般従業員) then
+    :yamada@example.com\n自動入力;
+  endif
+
+  :ログイン実行;
+
+  if (認証成功?) then (失敗)
+    :ログイン画面;
+    stop
+  endif
+endif
+
+if (役割確認) then (管理者)
+  #FFE0B2:管理者ダッシュボード\n/admin/dashboard;
+
+  repeat
+    :管理者メニュー;
+    if (メニュー選択) then (ダッシュボード)
+      #FFE0B2:ダッシュボード\n/admin/dashboard;
+    elseif (従業員管理) then
+      #FFE0B2:従業員管理\n/admin/employees;
+    elseif (チーム勤怠) then
+      #FFE0B2:チーム勤怠\n/admin/team;
+    elseif (勤怠一覧) then
+      #F3E5F5:勤怠一覧\n/attendance;
+    elseif (ログアウト) then
+      :ログアウト処理;
+      :ログイン画面;
+      stop
+    endif
+  repeat while (継続)
+
+else (一般従業員)
+  #E8F5E9:打刻画面\n/;
+
+  repeat
+    :タブ選択;
+    if (タブ) then (打刻タブ)
+      #E8F5E9:打刻画面\n/;
+    elseif (勤怠一覧タブ) then
+      #F3E5F5:勤怠一覧\n/attendance;
+    elseif (ログアウト) then
+      :ログアウト処理;
+      :ログイン画面;
+      stop
+    endif
+  repeat while (継続)
+endif
+
+stop
+
+@enduml
+
+@startuml ログイン処理フロー詳細
+
+title ログイン処理フロー詳細
+
+start
+
+#E3F2FD:ログイン画面表示\n/login;
+
+:メールアドレス\nパスワード入力フォーム;
+
+if (ユーザー操作) then (管理者アカウントボタン)
+  :admin@example.com\npassword を自動入力;
+elseif (一般従業員アカウントボタン) then
+  :yamada@example.com\npassword を自動入力;
+else (手動入力)
+  :メールアドレス\nパスワード入力;
+endif
+
+:ログインボタン;
+
+if (入力値検証) then (未入力)
+  #FFCDD2:エラー表示\n必須項目を入力してください;
+  stop
+endif
+
+:認証処理\nモックユーザー検索;
+
+if (認証結果) then (失敗)
+  #FFCDD2:エラー表示\nメールアドレスまたは\nパスワードが間違っています;
+  stop
+endif
+
+#C8E6C9:認証情報保存\nPinia Store;
+
+if (役割確認) then (admin)
+  #FFE0B2:管理者ダッシュボードへ\nリダイレクト\n/admin/dashboard;
+else (employee)
+  #E8F5E9:打刻画面へ\nリダイレクト\n/;
+endif
+
+stop
+
+@enduml
+
+@startuml 一般従業員_打刻画面フロー
+
+title 一般従業員 - 打刻画面フロー
+
+start
+
+#E8F5E9:打刻画面表示\n/;
+
+:画面初期化;
+:今日の日付取得\nYYYY-MM-DD;
+:本日の勤怠データ検索\nmockAttendances;
+
+if (勤怠データ存在?) then (存在しない)
+  #E8F5E9:出勤ボタン表示\n未出勤状態;
+
+  if (出勤ボタンクリック) then (クリック)
+    :位置情報取得\nnavigator.geolocation;
+
+    if (位置情報取得成功?) then (失敗)
+      #FFCDD2:エラーメッセージ表示\n位置情報を取得できませんでした;
+      stop
+    endif
+
+    #C8E6C9:勤怠データ作成\ncheckIn: 現在時刻\ncheckInLocation: 位置情報\nstatus: 判定;
+    :ステータス判定\n09:00以前 → present\n09:00以降 → late;
+    #C8E6C9:データ保存\nmockAttendances;
+  endif
+
+elseif (checkIn存在?) then (存在しない)
+  #E8F5E9:出勤ボタン表示\n未出勤状態;
+
+else (checkOut存在?)
+  if (checkOut存在?) then (存在しない)
+    #FFE0B2:退勤ボタン表示\n出勤中状態\n出勤時刻表示;
+
+    if (退勤ボタンクリック) then (クリック)
+      :位置情報取得\nnavigator.geolocation;
+
+      if (位置情報取得成功?) then (失敗)
+        #FFCDD2:エラーメッセージ表示\n位置情報を取得できませんでした;
+        stop
+      endif
+
+      #C8E6C9:勤怠データ更新\ncheckOut: 現在時刻\ncheckOutLocation: 位置情報;
+      :勤務時間計算\ncheckOut - checkIn;
+      :ステータス再判定\n18:00以前 → early_leave\n18:00以降 → 変更なし;
+      #C8E6C9:データ保存\nmockAttendances;
+    endif
+
+  else (存在する)
+    #C8E6C9:退勤済み表示\n出勤・退勤時刻\n勤務時間表示;
+  endif
+endif
+
+stop
+
+@enduml
+
+@startuml 管理者_ダッシュボードフロー
+
+title 管理者 - ダッシュボードフロー
+
+start
+
+#FFE0B2:ダッシュボード表示\n/admin/dashboard;
+
+:画面初期化;
+
+partition サマリーデータ計算 {
+  :今日の日付取得\nYYYY-MM-DD;
+  :本日の勤怠データ抽出\nmockAttendances;
+  :従業員数カウント\nrole === 'employee';
+  :本日出勤中カウント\nstatus === 'present';
+  :遅刻・早退カウント\nstatus === 'late' or 'early_leave';
+  :今月取得 YYYY-MM;
+  :今月の勤怠データ抽出;
+  :勤務時間合計\nworkingMinutes;
+  :時間に変換\n分 / 60;
+  #FFE0B2:サマリーカード表示\n- 従業員数\n- 本日出勤中\n- 遅刻・早退\n- 今月の総勤務時間;
+}
+
+partition グラフデータ読み込み {
+  :グラフデータ読み込み\nmockChartData;
+  :月次出勤率データ準備\ncategories + series;
+  :部署別平均勤務時間準備\ncategories + series;
+  :遅刻・早退推移準備\ncategories + series;
+  :当日出勤状況準備\nlabels + series;
+  :グラフ描画 ApexCharts;
+
+  fork
+    #E3F2FD:月次出勤率推移\nLine Chart;
+  fork again
+    #E3F2FD:部署別平均勤務時間\nBar Chart;
+  fork again
+    #E3F2FD:遅刻・早退の推移\nMulti-line Chart;
+  fork again
+    #E3F2FD:当日の出勤状況\nDonut Chart;
+  end fork
+}
+
+:ダッシュボード表示完了;
+
+stop
+
+@enduml
+
+@startuml 管理者_チーム勤怠フロー
+
+title 管理者 - チーム勤怠フロー
+
+start
+
+#FFE0B2:チーム勤怠画面表示\n/admin/team;
+
+:画面初期化;
+
+:主任リスト取得\ncomputed;
+:主任をフィルタ\nposition === '主任'\nrole === 'employee';
+:主任データ変換\nid, name, label\ndepartment, employeeNumber;
+#FFE0B2:主任選択プルダウン表示\nv-select;
+
+if (主任選択) then (未選択)
+  #FFECB3:空メッセージ表示\n主任を選択してください;
+  stop
+endif
+
+:selectedManagerId設定;
+:selectedDate取得\nデフォルト: 今日;
+
+:チームメンバー取得\ncomputed;
+:チームメンバーフィルタ\nmanagerId === selectedManagerId\nrole === 'employee';
+
+repeat
+  :メンバーごとに処理 map;
+  :勤怠データ検索\nuserId + date;
+
+  if (勤怠データ存在?) then (存在しない)
+    :status = 'absent'\nその他 = null or '-';
+  else (存在する)
+    :checkIn取得;
+    :checkOut取得;
+    :勤務時間計算\nworkingMinutes → H:mm;
+    :status取得;
+    :note取得;
+  endif
+
+  :レコード構築\nemployeeNumber, name\nposition, checkIn\ncheckOut, workingHours\nstatus, note;
+
+repeat while (次のメンバー?) is (あり)
+->なし;
+
+partition チームサマリー計算 {
+  :チームメンバー数;
+  :正常出勤数\nstatus === 'present';
+  :遅刻・早退数\nstatus === 'late' or 'early_leave';
+  :欠勤数\nstatus === 'absent';
+  #C8E6C9:サマリーカード表示\n- チームメンバー数\n- 正常出勤\n- 遅刻・早退\n- 欠勤;
+}
+
+#E8F5E9:データテーブル表示\nv-data-table\nチームメンバー勤怠一覧;
+
+:画面表示完了;
+
+stop
+
+@enduml
+
+@startuml 管理者_従業員管理フロー
+
+title 管理者 - 従業員管理フロー
+
+start
+
+#FFE0B2:従業員管理画面\n/admin/employees;
+
+:対象月選択\ntype="month";
+:selectedMonth設定\nデフォルト: 現在の年月;
+
+:従業員一覧取得\ncomputed;
+:従業員フィルタ\nrole === 'employee';
+
+repeat
+  :従業員ごとに処理 map;
+  :選択された月の勤怠データ取得\natt.userId === user.id\natt.date.startsWith(selectedMonth);
+
+  partition ステータスごとの件数集計 {
+    :attendanceStatus初期化\npresent: 0, late: 0\nearly_leave: 0, absent: 0;
+
+    repeat
+      if (status確認) then (present)
+        :present++;
+      elseif (late) then
+        :late++;
+      elseif (early_leave) then
+        :early_leave++;
+      elseif (absent) then
+        :absent++;
+      endif
+    repeat while (次の勤怠データ?) is (あり)
+    ->なし;
+  }
+
+  :従業員データ構築\nemployeeNumber, name\nposition, department\nattendanceStatus;
+
+repeat while (次の従業員?) is (あり)
+->なし;
+
+#FFE0B2:従業員一覧表示\nv-data-table;
+
+:データテーブル表示\n- 社員番号\n- 名前\n- 役職\n- 当月の出勤ステータス\n  (正常・遅刻・早退・欠勤の件数)\n- 備考;
+
+stop
+
+@enduml
+
+@startuml 勤怠一覧フロー
+
+title 勤怠一覧フロー（一般従業員・管理者共通）
+
+start
+
+#F3E5F5:勤怠一覧画面\n/attendance;
+
+:日付選択\ntype="date";
+:selectedDate設定\nデフォルト: 今日;
+
+:全従業員の勤怠一覧取得\ncomputed;
+:従業員フィルタ\nrole === 'employee';
+
+repeat
+  :従業員ごとに処理 map;
+  :勤怠データ検索\natt.userId === user.id\natt.date === selectedDate;
+
+  if (勤怠データ存在?) then (存在する)
+    :checkIn取得;
+    :checkOut取得;
+
+    if (checkInLocation存在?) then (存在する)
+      note right
+        実際のアプリケーションでは
+        逆ジオコーディングAPIを使用
+      end note
+      :location設定\n東京都千代田区丸の内1-1-1\n(モックデータ);
+    else (存在しない)
+      :location = null;
+    endif
+
+    :勤務時間計算\nworkingMinutes → H:mm;
+    :status取得;
+    :note取得;
+  else (存在しない)
+    :checkIn = null;
+    :checkOut = null;
+    :location = null;
+    :status = 'absent';
+    :note = '';
+  endif
+
+  :レコード構築\nemployeeNumber, name\nposition, checkIn\ncheckOut, location\nstatus, note;
+
+repeat while (次の従業員?) is (あり)
+->なし;
+
+#F3E5F5:データテーブル表示\nv-data-table;
+
+:表示内容\n- 社員番号\n- 名前\n- 役職\n- 出勤時刻 (HH:mm)\n- 退勤時刻 (HH:mm)\n- 勤務時間 (H:mm)\n- 位置情報 (住所)\n- ステータス (色付きチップ)\n- 備考;
+
+stop
+
+@enduml
+
+@startuml ルートガード処理フロー
+
+title ルートガード処理フロー
+
+start
+
+:ページ遷移リクエスト;
+
+:ナビゲーションガード;
+
+if (route.meta確認) then (layout: 'none')
+  #C8E6C9:アクセス許可;
+  #E3F2FD:ログイン画面表示;
+  stop
+endif
+
+if (requiresAuth: true) then (true)
+  if (認証済み?) then (未認証)
+    #FFECB3:ログイン画面へ\nリダイレクト\n/login;
+    #E3F2FD:ログイン画面表示;
+    stop
+  endif
+
+  if (requiresAdmin確認) then (requiresAdmin: true)
+    if (管理者?) then (一般従業員)
+      #FFCDD2:403 Forbidden\nアクセス拒否;
+      #FFECB3:ホームへリダイレクト\n/;
+      stop
+    endif
+
+    #C8E6C9:アクセス許可;
+    #FFE0B2:管理者ページ表示;
+    stop
+  endif
+
+  #C8E6C9:アクセス許可;
+  :ページ表示;
+  stop
+endif
+
+stop
+
+@enduml
+
+@startuml レイアウト切り替えフロー
+
+title レイアウト切り替えフロー
+
+start
+
+:ページ表示;
+
+if (route.meta.layout確認) then (layout: 'none')
+  :レイアウトなし\nRouterViewのみ;
+  #E3F2FD:ログイン画面;
+  stop
+endif
+
+if (認証ユーザーの役割確認) then (admin)
+  #FFE0B2:管理者レイアウト\nshowHeader: true\nshowSidebar: true\nshowFooter: false\nshowTabs: false;
+  :MainLayout描画\nサイドバー表示;
+  #FFE0B2:管理者コンテンツ表示;
+else (employee)
+  #E8F5E9:一般従業員レイアウト\nshowHeader: true\nshowSidebar: false\nshowFooter: false\nshowTabs: true;
+  :MainLayout描画\nタブ表示;
+  #E8F5E9:一般従業員コンテンツ表示;
+endif
+
+stop
+
+@enduml
