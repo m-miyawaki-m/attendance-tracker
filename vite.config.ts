@@ -6,7 +6,8 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/attendance-tracker/',
+  // GitHub Actionsでのビルド時（GITHUB_ACTIONS=true）だけサブディレクトリをベースにする
+  base: process.env.GITHUB_ACTIONS ? '/attendance-tracker/' : '/',
   plugins: [vue(), vueDevTools()],
   resolve: {
     alias: {
