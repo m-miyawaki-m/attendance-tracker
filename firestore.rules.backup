@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ヘルパー関数: 認証済みユーザーかどうか
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // ヘルパー関数: 管理者かどうか
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ヘルパー関数: 自分自身のドキュメントかどうか
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ユーザーコレクション
+    match /users/{userId} {
+      // 読み取り: 認証済みユーザーは全員可能
+      allow read: if isAuthenticated();
+
+      // 作成: 管理者のみ可能
+      allow create: if isAdmin();
+
+      // 更新: 自分自身または管理者のみ可能
+      allow update: if isOwner(userId) || isAdmin();
+
+      // 削除: 管理者のみ可能
+      allow delete: if isAdmin();
+    }
+
+    // 勤怠記録コレクション
+    match /attendances/{attendanceId} {
+      // 読み取り: 自分の記録または管理者のみ可能
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid || isAdmin());
+
+      // 作成: 自分の記録のみ作成可能
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.date is string &&
+                       request.resource.data.checkIn is timestamp &&
+                       request.resource.data.status in ['present', 'late', 'early_leave', 'absent'];
+
+      // 更新: 自分の記録のみ更新可能（退勤打刻など）
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       // 管理者は全ての記録を編集可能
+                       (isOwner(resource.data.userId) || isAdmin());
+
+      // 削除: 管理者のみ可能
+      allow delete: if isAdmin();
+    }
+
+    // 位置情報マスタデータ（将来的に使用する場合）
+    match /locations/{locationId} {
+      // 読み取り: 認証済みユーザーは全員可能
+      allow read: if isAuthenticated();
+
+      // 書き込み: 管理者のみ可能
+      allow write: if isAdmin();
+    }
+
+    // 編集履歴コレクション（将来的に使用する場合）
+    match /editLogs/{logId} {
+      // 読み取り: 認証済みユーザーは全員可能
+      allow read: if isAuthenticated();
+
+      // 作成: 管理者のみ可能
+      allow create: if isAdmin();
+
+      // 更新・削除: 不可
+      allow update, delete: if false;
+    }
+  }
+}

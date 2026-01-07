@@ -1,6 +1,6 @@
 // src/router/index.ts
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthFirebaseStore } from '@/stores/authFirebase'
 import MainLayout from '@/layouts/MainLayout.vue'
 
 const routes: RouteRecordRaw[] = [
@@ -63,7 +63,7 @@ const router = createRouter({
 
 // ナビゲーションガード
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const authStore = useAuthFirebaseStore()
   authStore.checkAuth()
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)

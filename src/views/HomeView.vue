@@ -147,6 +147,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useAttendanceFirebaseStore } from '@/stores/attendanceFirebase'
+import { useAuthFirebaseStore } from '@/stores/authFirebase'
+import type { Location } from '@/types'
+
+const attendanceStore = useAttendanceFirebaseStore()
+const authStore = useAuthFirebaseStore()
 
 const currentTime = ref<string>('')
 const currentDate = ref<string>('')
@@ -243,8 +249,8 @@ const getAddressFromCoords = async (lat: number, lon: number): Promise<string> =
   }
 }
 
-// 位置情報を取得
-const getCurrentLocation = (): Promise<string> => {
+// 位置情報を取得（Location オブジェクトを返す）
+const getCurrentLocation = (): Promise<Location> => {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
       reject('位置情報がサポートされていません')
@@ -252,16 +258,13 @@ const getCurrentLocation = (): Promise<string> => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude
-        const lon = position.coords.longitude
-        const accuracy = position.coords.accuracy.toFixed(0)
-
-        // 地名を取得
-        const address = await getAddressFromCoords(lat, lon)
-
-        const locationStr = `${address}\n緯度: ${lat.toFixed(6)}, 経度: ${lon.toFixed(6)} (精度: ${accuracy}m)`
-        resolve(locationStr)
+      (position) => {
+        const location: Location = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        }
+        resolve(location)
       },
       (error) => {
         console.error('位置情報取得エラー:', error)
@@ -290,31 +293,41 @@ const getCurrentLocation = (): Promise<string> => {
   })
 }
 
-// LocalStorageから打刻状態を読み込む
-const loadAttendanceState = () => {
-  const checkedIn = localStorage.getItem('mock_checked_in')
-  const checkedOut = localStorage.getItem('mock_checked_out')
-  const checkedInLoc = localStorage.getItem('mock_checked_in_location')
-  const checkedOutLoc = localStorage.getItem('mock_checked_out_location')
-  const savedDate = localStorage.getItem('mock_attendance_date')
-  const today = new Date().toISOString().split('T')[0]
+// Locationオブジェクトを表示用文字列に変換
+const locationToString = async (location: Location): Promise<string> => {
+  const address = await getAddressFromCoords(location.latitude, location.longitude)
+  return `${address}\n緯度: ${location.latitude.toFixed(6)}, 経度: ${location.longitude.toFixed(6)} (精度: ${location.accuracy.toFixed(0)}m)`
+}
 
-  // 日付が変わっていたらクリア
-  if (savedDate !== today) {
-    localStorage.removeItem('mock_checked_in')
-    localStorage.removeItem('mock_checked_out')
-    localStorage.removeItem('mock_checked_in_location')
-    localStorage.removeItem('mock_checked_out_location')
-    localStorage.removeItem('mock_attendance_date')
-    checkInTime.value = null
-    checkOutTime.value = null
-    checkInLocation.value = null
-    checkOutLocation.value = null
-  } else {
-    checkInTime.value = checkedIn
-    checkOutTime.value = checkedOut
-    checkInLocation.value = checkedInLoc
-    checkOutLocation.value = checkedOutLoc
+// Firestoreから今日の打刻状態を読み込む
+const loadAttendanceState = async () => {
+  try {
+    if (!authStore.user?.id) {
+      return
+    }
+
+    const todayAttendance = await attendanceStore.getTodayAttendance(authStore.user.id)
+
+    if (todayAttendance) {
+      checkInTime.value = todayAttendance.checkIn.toISOString()
+      checkInLocation.value = await locationToString(todayAttendance.checkInLocation)
+
+      if (todayAttendance.checkOut && todayAttendance.checkOutLocation) {
+        checkOutTime.value = todayAttendance.checkOut.toISOString()
+        checkOutLocation.value = await locationToString(todayAttendance.checkOutLocation)
+      } else {
+        checkOutTime.value = null
+        checkOutLocation.value = null
+      }
+    } else {
+      checkInTime.value = null
+      checkOutTime.value = null
+      checkInLocation.value = null
+      checkOutLocation.value = null
+    }
+  } catch (error) {
+    console.error('Failed to load attendance state:', error)
+    showSnackbar('勤怠情報の読み込みに失敗しました', 'error')
   }
 }
 
@@ -336,32 +349,39 @@ const updateTime = () => {
 
 // 出勤打刻
 const handleCheckIn = async () => {
+  if (!authStore.user?.id) {
+    showSnackbar('ユーザー情報が取得できません', 'error')
+    return
+  }
+
   loading.value = true
   try {
     // 位置情報を取得
-    let location = '位置情報なし'
+    let location: Location
     try {
       location = await getCurrentLocation()
     } catch (locError) {
       console.warn('位置情報の取得に失敗:', locError)
-      location = '位置情報の取得に失敗'
+      showSnackbar('位置情報の取得に失敗しました。デフォルト位置で打刻します。', 'warning')
+      // デフォルト位置情報（位置情報取得失敗時）
+      location = { latitude: 0, longitude: 0, accuracy: 0 }
     }
 
-    const now = new Date().toISOString()
-    const today = new Date().toISOString().split('T')[0]
+    // Firestoreに出勤打刻を保存
+    const result = await attendanceStore.clockIn(authStore.user.id, location)
 
-    checkInTime.value = now
-    checkInLocation.value = location
-    checkOutTime.value = null
-    checkOutLocation.value = null
+    if (result.success) {
+      // 画面表示を更新
+      const now = new Date().toISOString()
+      checkInTime.value = now
+      checkInLocation.value = await locationToString(location)
+      checkOutTime.value = null
+      checkOutLocation.value = null
 
-    localStorage.setItem('mock_checked_in', now)
-    localStorage.setItem('mock_checked_in_location', location)
-    localStorage.setItem('mock_attendance_date', String(today))
-    localStorage.removeItem('mock_checked_out')
-    localStorage.removeItem('mock_checked_out_location')
-
-    showSnackbar('出勤打刻しました', 'success')
+      showSnackbar('出勤打刻しました', 'success')
+    } else {
+      showSnackbar(result.error || '出勤打刻に失敗しました', 'error')
+    }
   } catch (err) {
     console.error(err)
     showSnackbar('出勤打刻に失敗しました', 'error')
@@ -372,26 +392,37 @@ const handleCheckIn = async () => {
 
 // 退勤打刻
 const handleCheckOut = async () => {
+  if (!authStore.user?.id) {
+    showSnackbar('ユーザー情報が取得できません', 'error')
+    return
+  }
+
   loading.value = true
   try {
     // 位置情報を取得
-    let location = '位置情報なし'
+    let location: Location
     try {
       location = await getCurrentLocation()
     } catch (locError) {
       console.warn('位置情報の取得に失敗:', locError)
-      location = '位置情報の取得に失敗'
+      showSnackbar('位置情報の取得に失敗しました。デフォルト位置で打刻します。', 'warning')
+      // デフォルト位置情報（位置情報取得失敗時）
+      location = { latitude: 0, longitude: 0, accuracy: 0 }
     }
 
-    const now = new Date().toISOString()
+    // Firestoreに退勤打刻を保存
+    const result = await attendanceStore.clockOut(authStore.user.id, location)
 
-    checkOutTime.value = now
-    checkOutLocation.value = location
+    if (result.success) {
+      // 画面表示を更新
+      const now = new Date().toISOString()
+      checkOutTime.value = now
+      checkOutLocation.value = await locationToString(location)
 
-    localStorage.setItem('mock_checked_out', now)
-    localStorage.setItem('mock_checked_out_location', location)
-
-    showSnackbar('退勤打刻しました', 'success')
+      showSnackbar('退勤打刻しました', 'success')
+    } else {
+      showSnackbar(result.error || '退勤打刻に失敗しました', 'error')
+    }
   } catch (err) {
     console.error(err)
     showSnackbar('退勤打刻に失敗しました', 'error')

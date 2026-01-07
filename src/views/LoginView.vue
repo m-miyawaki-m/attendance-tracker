@@ -41,24 +41,24 @@
               </v-card-text>
               <v-divider />
               <v-card-text class="text-center">
-                <p class="text-caption mb-2">モック用アカウント（クリックで入力）</p>
+                <p class="text-caption mb-2">テストアカウント（クリックで入力）</p>
                 <v-chip
                   class="ma-1"
                   size="small"
                   clickable
-                  @click="fillMockAccount('yamada@example.com', 'password')"
+                  @click="fillMockAccount('user01@example.com', 'user01')"
                 >
-                  従業員: yamada@example.com
+                  従業員: user01@example.com
                 </v-chip>
                 <v-chip
                   class="ma-1"
                   size="small"
                   clickable
-                  @click="fillMockAccount('admin@example.com', 'password')"
+                  @click="fillMockAccount('admin@example.com', 'adminadmin')"
                 >
                   管理者: admin@example.com
                 </v-chip>
-                <p class="text-caption mt-2">パスワード: password</p>
+                <p class="text-caption mt-2">パスワード: user01 / adminadmin</p>
               </v-card-text>
             </v-card>
           </v-col>
@@ -75,10 +75,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthFirebaseStore } from '@/stores/authFirebase'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const authStore = useAuthFirebaseStore()
 
 const email = ref<string>('')
 const password = ref<string>('')
@@ -92,11 +92,7 @@ const handleLogin = async (): Promise<void> => {
   loading.value = true
 
   try {
-    const success = authStore.login({
-      email: email.value,
-      password: password.value,
-      rememberMe: rememberMe.value,
-    })
+    const success = await authStore.login(email.value, password.value)
 
     if (success) {
       showSnackbar('ログインしました', 'success')
@@ -111,6 +107,9 @@ const handleLogin = async (): Promise<void> => {
     } else {
       showSnackbar('メールアドレスまたはパスワードが正しくありません', 'error')
     }
+  } catch (error) {
+    console.error('Login error:', error)
+    showSnackbar('ログインに失敗しました', 'error')
   } finally {
     loading.value = false
   }

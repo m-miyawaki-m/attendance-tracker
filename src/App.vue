@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthFirebaseStore } from '@/stores/authFirebase'
 
 const route = useRoute()
-const authStore = useAuthStore()
+const authStore = useAuthFirebaseStore()
+
+// Firebase認証リスナーを初期化
+onMounted(() => {
+  authStore.initAuthListener()
+})
 
 const layoutConfig = computed(() => {
   const layout = route.meta.layout as string | undefined
