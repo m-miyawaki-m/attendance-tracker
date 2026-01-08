@@ -1,0 +1,212 @@
+[
+  {
+    "id": "SCRmr8ic0ed8XETzaMdec4scqZs2",
+    "name": "管理者",
+    "email": "admin@example.com",
+    "role": "admin",
+    "department": "総務部",
+    "position": "管理者",
+    "employeeNumber": "ADMIN001",
+    "managerId": null
+  },
+  {
+    "id": "W6i8UM3962WfSuKAnVPupU1Aeh53",
+    "name": "山田太郎",
+    "email": "user01@example.com",
+    "role": "employee",
+    "department": "営業部",
+    "position": "一般社員",
+    "employeeNumber": "EMP001",
+    "managerId": null
+  },
+  {
+    "id": "user02_1767797399707_3on6m",
+    "name": "清水花子",
+    "email": "user02@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "マネージャー",
+    "employeeNumber": "EMP02",
+    "managerId": null
+  },
+  {
+    "id": "user03_1767797399915_mhzqu7",
+    "name": "吉田正人",
+    "email": "user03@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "課長補佐",
+    "employeeNumber": "EMP03",
+    "managerId": null
+  },
+  {
+    "id": "user04_1767797400125_jklqi",
+    "name": "木村恵子",
+    "email": "user04@example.com",
+    "role": "employee",
+    "department": "人事部",
+    "position": "課長補佐",
+    "employeeNumber": "EMP04",
+    "managerId": null
+  },
+  {
+    "id": "user05_1767797400334_jz8pk",
+    "name": "斎藤明美",
+    "email": "user05@example.com",
+    "role": "employee",
+    "department": "経理部",
+    "position": "シニアエンジニア",
+    "employeeNumber": "EMP05",
+    "managerId": null
+  },
+  {
+    "id": "user06_1767797400521_qabl7l",
+    "name": "鈴木美咲",
+    "email": "user06@example.com",
+    "role": "employee",
+    "department": "経理部",
+    "position": "課長補佐",
+    "employeeNumber": "EMP06",
+    "managerId": null
+  },
+  {
+    "id": "user07_1767797400757_knxemd",
+    "name": "中村次郎",
+    "email": "user07@example.com",
+    "role": "employee",
+    "department": "人事部",
+    "position": "プロジェクトリーダー",
+    "employeeNumber": "EMP07",
+    "managerId": null
+  },
+  {
+    "id": "user08_1767797400965_y4vegn",
+    "name": "加藤明美",
+    "email": "user08@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "課長補佐",
+    "employeeNumber": "EMP08",
+    "managerId": null
+  },
+  {
+    "id": "user09_1767797401172_2h9dgg",
+    "name": "井上花子",
+    "email": "user09@example.com",
+    "role": "employee",
+    "department": "営業部",
+    "position": "一般社員",
+    "employeeNumber": "EMP09",
+    "managerId": null
+  },
+  {
+    "id": "user10_1767797401332_f5pauc",
+    "name": "井上真理子",
+    "email": "user10@example.com",
+    "role": "employee",
+    "department": "マーケティング部",
+    "position": "一般社員",
+    "employeeNumber": "EMP10",
+    "managerId": null
+  },
+  {
+    "id": "user11_1767797401484_eud18j",
+    "name": "小林恵子",
+    "email": "user11@example.com",
+    "role": "employee",
+    "department": "総務部",
+    "position": "主任",
+    "employeeNumber": "EMP11",
+    "managerId": null
+  },
+  {
+    "id": "user12_1767797401639_qibwx",
+    "name": "小林貴之",
+    "email": "user12@example.com",
+    "role": "employee",
+    "department": "営業部",
+    "position": "主任",
+    "employeeNumber": "EMP12",
+    "managerId": null
+  },
+  {
+    "id": "user13_1767797401790_bguyy",
+    "name": "鈴木麻美",
+    "email": "user13@example.com",
+    "role": "employee",
+    "department": "マーケティング部",
+    "position": "課長補佐",
+    "employeeNumber": "EMP13",
+    "managerId": null
+  },
+  {
+    "id": "user14_1767797401942_o881i",
+    "name": "吉田浩二",
+    "email": "user14@example.com",
+    "role": "employee",
+    "department": "マーケティング部",
+    "position": "一般社員",
+    "employeeNumber": "EMP14",
+    "managerId": null
+  },
+  {
+    "id": "user15_1767797402095_nuwzf",
+    "name": "山田直樹",
+    "email": "user15@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "主任",
+    "employeeNumber": "EMP15",
+    "managerId": null
+  },
+  {
+    "id": "user16_1767797402265_lhmbdb",
+    "name": "山崎直樹",
+    "email": "user16@example.com",
+    "role": "employee",
+    "department": "営業部",
+    "position": "主任",
+    "employeeNumber": "EMP16",
+    "managerId": null
+  },
+  {
+    "id": "user17_1767797402417_77fzfd",
+    "name": "山本和也",
+    "email": "user17@example.com",
+    "role": "employee",
+    "department": "総務部",
+    "position": "マネージャー",
+    "employeeNumber": "EMP17",
+    "managerId": null
+  },
+  {
+    "id": "user18_1767797402569_hcbzea",
+    "name": "井上智子",
+    "email": "user18@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "マネージャー",
+    "employeeNumber": "EMP18",
+    "managerId": null
+  },
+  {
+    "id": "user19_1767797402737_ltp00o",
+    "name": "林明美",
+    "email": "user19@example.com",
+    "role": "employee",
+    "department": "総務部",
+    "position": "シニアエンジニア",
+    "employeeNumber": "EMP19",
+    "managerId": null
+  },
+  {
+    "id": "user20_1767797402890_va9fdr",
+    "name": "山田真理子",
+    "email": "user20@example.com",
+    "role": "employee",
+    "department": "開発部",
+    "position": "一般社員",
+    "employeeNumber": "EMP20",
+    "managerId": null
+  }
+]

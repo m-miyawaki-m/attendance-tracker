@@ -42,23 +42,58 @@
               <v-divider />
               <v-card-text class="text-center">
                 <p class="text-caption mb-2">テストアカウント（クリックで入力）</p>
-                <v-chip
-                  class="ma-1"
-                  size="small"
-                  clickable
-                  @click="fillMockAccount('user01@example.com', 'user01')"
-                >
-                  従業員: user01@example.com
-                </v-chip>
-                <v-chip
-                  class="ma-1"
-                  size="small"
-                  clickable
-                  @click="fillMockAccount('admin@example.com', 'adminadmin')"
-                >
-                  管理者: admin@example.com
-                </v-chip>
-                <p class="text-caption mt-2">パスワード: user01 / adminadmin</p>
+                <div class="d-flex flex-wrap justify-center gap-2 mb-3">
+                  <v-chip
+                    class="ma-1"
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    clickable
+                    @click="fillMockAccount('admin@example.com', 'adminadmin')"
+                  >
+                    <v-icon start size="small">mdi-shield-account</v-icon>
+                    管理者
+                  </v-chip>
+                  <v-chip
+                    class="ma-1"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    clickable
+                    @click="fillMockAccount('user01@example.com', 'user01')"
+                  >
+                    <v-icon start size="small">mdi-account</v-icon>
+                    user01
+                  </v-chip>
+                  <v-chip
+                    class="ma-1"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    clickable
+                    @click="fillMockAccount('user02@example.com', 'password123')"
+                  >
+                    <v-icon start size="small">mdi-account</v-icon>
+                    user02
+                  </v-chip>
+                  <v-chip
+                    class="ma-1"
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    clickable
+                    @click="fillMockAccount('user03@example.com', 'password123')"
+                  >
+                    <v-icon start size="small">mdi-account</v-icon>
+                    user03
+                  </v-chip>
+                </div>
+                <p class="text-caption text-grey-darken-1">
+                  利用可能: admin (pw: adminadmin), user01 (pw: user01), user02~user20 (pw: password123)
+                </p>
+                <p class="text-caption text-grey mt-1">
+                  合計 20人のユーザーが利用可能です
+                </p>
               </v-card-text>
             </v-card>
           </v-col>

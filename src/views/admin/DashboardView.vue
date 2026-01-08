@@ -135,24 +135,67 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { mockChartData, mockUsers, mockAttendances } from '@/data/mockData'
-import type { ApexChartOptions } from '@/types'
+import { ref, computed, onMounted } from 'vue'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from '@/firebase/config'
+import type { ApexChartOptions, User, Attendance } from '@/types'
+
+const users = ref<User[]>([])
+const attendances = ref<Attendance[]>([])
+const loading = ref(true)
+
+// Firestoreからデータを取得
+onMounted(async () => {
+  try {
+    // ユーザー一覧を取得
+    const usersSnapshot = await getDocs(collection(db, 'users'))
+    users.value = usersSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as User[]
+
+    // 過去30日分の勤怠データを取得（ダッシュボードの統計用）
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const startDate = thirtyDaysAgo.toISOString().split('T')[0]
+
+    const attendancesQuery = query(
+      collection(db, 'attendances'),
+      where('date', '>=', startDate)
+    )
+    const attendancesSnapshot = await getDocs(attendancesQuery)
+    attendances.value = attendancesSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      checkIn: doc.data().checkIn?.toDate(),
+      checkOut: doc.data().checkOut?.toDate(),
+    })) as Attendance[]
+
+    console.log('Dashboard data loaded:', {
+      users: users.value.length,
+      attendances: attendances.value.length,
+    })
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error)
+  } finally {
+    loading.value = false
+  }
+})
 
 // サマリーデータを計算
 const summary = computed(() => {
   const today = new Date().toISOString().split('T')[0]
-  const todayAttendances = mockAttendances.filter((att) => att.date === today)
+  const todayAttendances = attendances.value.filter((att) => att.date === today)
 
-  const totalEmployees = mockUsers.filter((user) => user.role === 'employee').length
+  const totalEmployees = users.value.filter((user) => user.role === 'employee').length
   const todayPresent = todayAttendances.filter((att) => att.status === 'present').length
   const todayLate = todayAttendances.filter((att) => att.status === 'late').length
   const todayEarlyLeave = todayAttendances.filter((att) => att.status === 'early_leave').length
 
-  // 今月の総勤務時間を計算（モックデータから）
+  // 今月の総勤務時間を計算
   const currentMonth = new Date().toISOString().slice(0, 7)
-  const monthlyAttendances = mockAttendances.filter((att) => att.date.startsWith(currentMonth))
-  const totalMinutes = monthlyAttendances.reduce((sum, att) => sum + att.workingMinutes, 0)
+  const monthlyAttendances = attendances.value.filter((att) => att.date.startsWith(currentMonth))
+  const totalMinutes = monthlyAttendances.reduce((sum, att) => sum + (att.workingMinutes || 0), 0)
   const totalHours = Math.floor(totalMinutes / 60)
 
   return {
@@ -163,11 +206,139 @@ const summary = computed(() => {
   }
 })
 
-// グラフデータ
-const chartData = mockChartData
+// グラフデータを計算
+const chartData = computed(() => {
+  // 過去6ヶ月の月次出勤率を計算
+  const attendanceRateData = calculateMonthlyAttendanceRate()
+
+  // 部署別平均勤務時間を計算
+  const avgWorkHoursData = calculateDepartmentAverageWorkHours()
+
+  // 遅刻・早退の推移を計算
+  const lateEarlyLeaveData = calculateLateEarlyLeaveTrend()
+
+  // 当日の出勤状況を計算
+  const departmentStatusData = calculateTodayAttendanceStatus()
+
+  return {
+    attendanceRate: attendanceRateData,
+    averageWorkHours: avgWorkHoursData,
+    lateEarlyLeave: lateEarlyLeaveData,
+    departmentStatus: departmentStatusData,
+  }
+})
+
+// 月次出勤率を計算（過去6ヶ月）
+const calculateMonthlyAttendanceRate = () => {
+  const categories: string[] = []
+  const data: number[] = []
+
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date()
+    date.setMonth(date.getMonth() - i)
+    const monthStr = date.toISOString().slice(0, 7)
+    const monthName = `${date.getMonth() + 1}月`
+
+    const monthAttendances = attendances.value.filter((att) => att.date.startsWith(monthStr))
+    const presentCount = monthAttendances.filter((att) =>
+      att.status === 'present' || att.status === 'late' || att.status === 'early_leave'
+    ).length
+    const totalCount = monthAttendances.length
+    const rate = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0
+
+    categories.push(monthName)
+    data.push(rate)
+  }
+
+  return {
+    categories,
+    series: [{ name: '出勤率', data }],
+  }
+}
+
+// 部署別平均勤務時間を計算
+const calculateDepartmentAverageWorkHours = () => {
+  const departmentMap = new Map<string, { totalMinutes: number; count: number }>()
+
+  // 今月のデータのみを対象
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const monthlyAttendances = attendances.value.filter((att) => att.date.startsWith(currentMonth))
+
+  monthlyAttendances.forEach((att) => {
+    const user = users.value.find((u) => u.id === att.userId)
+    if (user && user.department && att.workingMinutes) {
+      const dept = user.department
+      const current = departmentMap.get(dept) || { totalMinutes: 0, count: 0 }
+      departmentMap.set(dept, {
+        totalMinutes: current.totalMinutes + att.workingMinutes,
+        count: current.count + 1,
+      })
+    }
+  })
+
+  const categories: string[] = []
+  const data: number[] = []
+
+  departmentMap.forEach((value, dept) => {
+    const avgHours = value.count > 0 ? Math.round((value.totalMinutes / value.count) / 60 * 10) / 10 : 0
+    categories.push(dept)
+    data.push(avgHours)
+  })
+
+  return {
+    categories,
+    series: [{ name: '平均勤務時間', data }],
+  }
+}
+
+// 遅刻・早退の推移を計算（過去7日間）
+const calculateLateEarlyLeaveTrend = () => {
+  const categories: string[] = []
+  const lateData: number[] = []
+  const earlyLeaveData: number[] = []
+
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date()
+    date.setDate(date.getDate() - i)
+    const dateStr = date.toISOString().split('T')[0]
+    const dayLabel = `${date.getMonth() + 1}/${date.getDate()}`
+
+    const dayAttendances = attendances.value.filter((att) => att.date === dateStr)
+    const lateCount = dayAttendances.filter((att) => att.status === 'late').length
+    const earlyLeaveCount = dayAttendances.filter((att) => att.status === 'early_leave').length
+
+    categories.push(dayLabel)
+    lateData.push(lateCount)
+    earlyLeaveData.push(earlyLeaveCount)
+  }
+
+  return {
+    categories,
+    series: [
+      { name: '遅刻', data: lateData },
+      { name: '早退', data: earlyLeaveData },
+    ],
+  }
+}
+
+// 当日の出勤状況を計算
+const calculateTodayAttendanceStatus = () => {
+  const today = new Date().toISOString().split('T')[0]
+  const todayAttendances = attendances.value.filter((att) => att.date === today)
+
+  const presentCount = todayAttendances.filter((att) =>
+    att.status === 'present' || att.status === 'late' || att.status === 'early_leave'
+  ).length
+  const absentCount = todayAttendances.filter((att) => att.status === 'absent').length
+
+  return {
+    labels: ['出勤', '欠勤'],
+    series: [presentCount, absentCount],
+  }
+}
 
 // 月次出勤率推移のオプション
-const attendanceRateOptions: ApexChartOptions = {
+const attendanceRateOptions = computed<ApexChartOptions>(() => ({
   chart: {
     type: 'line',
     toolbar: {
@@ -175,7 +346,7 @@ const attendanceRateOptions: ApexChartOptions = {
     },
   },
   xaxis: {
-    categories: chartData.attendanceRate.categories,
+    categories: chartData.value.attendanceRate.categories,
   },
   yaxis: {
     title: {
@@ -195,10 +366,10 @@ const attendanceRateOptions: ApexChartOptions = {
   markers: {
     size: 5,
   },
-}
+}))
 
 // 部署別平均勤務時間のオプション
-const avgWorkHoursOptions: ApexChartOptions = {
+const avgWorkHoursOptions = computed<ApexChartOptions>(() => ({
   chart: {
     type: 'bar',
     toolbar: {
@@ -206,7 +377,7 @@ const avgWorkHoursOptions: ApexChartOptions = {
     },
   },
   xaxis: {
-    categories: chartData.averageWorkHours.categories,
+    categories: chartData.value.averageWorkHours.categories,
   },
   yaxis: {
     title: {
@@ -233,10 +404,10 @@ const avgWorkHoursOptions: ApexChartOptions = {
     },
   },
   colors: ['#2196F3'],
-}
+}))
 
 // 遅刻・早退の推移のオプション
-const lateEarlyLeaveOptions: ApexChartOptions = {
+const lateEarlyLeaveOptions = computed<ApexChartOptions>(() => ({
   chart: {
     type: 'line',
     toolbar: {
@@ -244,7 +415,7 @@ const lateEarlyLeaveOptions: ApexChartOptions = {
     },
   },
   xaxis: {
-    categories: chartData.lateEarlyLeave.categories,
+    categories: chartData.value.lateEarlyLeave.categories,
   },
   yaxis: {
     title: {
@@ -265,14 +436,14 @@ const lateEarlyLeaveOptions: ApexChartOptions = {
   legend: {
     position: 'top',
   },
-}
+}))
 
 // 当日の出勤状況のオプション
-const departmentStatusOptions: ApexChartOptions = {
+const departmentStatusOptions = computed<ApexChartOptions>(() => ({
   chart: {
     type: 'donut',
   },
-  labels: chartData.departmentStatus.labels,
+  labels: chartData.value.departmentStatus.labels,
   colors: ['#4CAF50', '#F44336'],
   legend: {
     position: 'bottom',
@@ -300,7 +471,7 @@ const departmentStatusOptions: ApexChartOptions = {
       return val.toFixed(1) + '%'
     },
   },
-}
+}))
 </script>
 
 <style scoped></style>

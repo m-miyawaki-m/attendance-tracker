@@ -144,17 +144,68 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { mockUsers, mockAttendances, statusConfig } from '@/data/mockData'
-import type { DataTableHeader } from '@/types'
+import { ref, computed, onMounted, watch } from 'vue'
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import { db } from '@/firebase/config'
+import { statusConfig } from '@/data/mockData'
+import type { DataTableHeader, User, Attendance } from '@/types'
 
 const today = new Date().toISOString().split('T')[0]
 const selectedDate = ref<string>(today || '')
 const selectedManagerId = ref<string | null>(null)
+const users = ref<User[]>([])
+const attendances = ref<Attendance[]>([])
+const loading = ref(true)
+
+// Firestoreからデータを取得
+onMounted(async () => {
+  try {
+    // ユーザー一覧を取得
+    const usersSnapshot = await getDocs(collection(db, 'users'))
+    users.value = usersSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as User[]
+
+    console.log('Total users loaded:', users.value.length)
+
+    // 初期日付の勤怠データを取得
+    await fetchAttendances()
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  } finally {
+    loading.value = false
+  }
+})
+
+// 日付が変更されたら勤怠データを再取得
+watch(selectedDate, () => {
+  fetchAttendances()
+})
+
+// 勤怠データを取得
+const fetchAttendances = async () => {
+  try {
+    const attendancesQuery = query(
+      collection(db, 'attendances'),
+      where('date', '==', selectedDate.value)
+    )
+    const attendancesSnapshot = await getDocs(attendancesQuery)
+    attendances.value = attendancesSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      // TimestampをDateに変換
+      checkIn: doc.data().checkIn?.toDate(),
+      checkOut: doc.data().checkOut?.toDate(),
+    })) as Attendance[]
+  } catch (error) {
+    console.error('Error fetching attendances:', error)
+  }
+}
 
 // 主任リスト（position が「主任」のユーザー）
 const managers = computed(() => {
-  const managerList = mockUsers
+  const managerList = users.value
     .filter((user) => user.position === '主任' && user.role === 'employee')
     .map((user) => ({
       id: user.id,
@@ -164,14 +215,14 @@ const managers = computed(() => {
       employeeNumber: user.employeeNumber,
     }))
 
-  console.log('Managers found:', managerList)
+  console.log('Managers found:', managerList.length)
   return managerList
 })
 
 // 選択された主任の名前
 const selectedManagerName = computed(() => {
   if (!selectedManagerId.value) return ''
-  const manager = mockUsers.find((user) => user.id === selectedManagerId.value)
+  const manager = users.value.find((user) => user.id === selectedManagerId.value)
   return manager ? manager.name : ''
 })
 
@@ -192,13 +243,13 @@ const teamAttendanceList = computed(() => {
   if (!selectedManagerId.value) return []
 
   // 選択された主任の配下メンバーを取得
-  const teamMembers = mockUsers.filter(
+  const teamMembers = users.value.filter(
     (user) => user.managerId === selectedManagerId.value && user.role === 'employee',
   )
 
   return teamMembers.map((user) => {
-    const attendance = mockAttendances.find(
-      (att) => att.userId === user.id && att.date === selectedDate.value,
+    const attendance = attendances.value.find(
+      (att) => att.userId === user.id
     )
 
     // 勤務時間を計算
