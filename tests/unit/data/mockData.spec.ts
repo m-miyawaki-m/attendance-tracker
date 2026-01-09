@@ -12,7 +12,7 @@ import {
 describe('Mock Data', () => {
   describe('mockUsers', () => {
     it('正しい数のユーザーが存在する', () => {
-      expect(mockUsers).toHaveLength(6)
+      expect(mockUsers).toHaveLength(21)
     })
 
     it('管理者ユーザーが存在する', () => {

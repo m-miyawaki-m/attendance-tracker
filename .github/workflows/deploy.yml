@@ -21,7 +21,13 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - run: npm install
+      - run: npm ci
+
+      - name: Run tests
+        run: npm run test:unit -- --run
+
+      - name: Type check
+        run: npm run type-check
 
       # Firebaseの環境変数をビルド時に注入する
       - name: Build

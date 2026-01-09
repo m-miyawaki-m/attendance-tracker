@@ -10,7 +10,7 @@
         <v-icon start>mdi-account</v-icon>
         {{ authStore.userName }}
       </v-chip>
-      <v-btn v-if="authStore.isAuthenticated" icon @click="handleLogout">
+      <v-btn v-if="authStore.isAuthenticated" icon @click="handleLogout" data-testid="logout-button">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
