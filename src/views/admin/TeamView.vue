@@ -145,84 +145,61 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { collection, getDocs, query, where } from 'firebase/firestore'
-import { db } from '@/firebase/config'
-import { statusConfig } from '@/data/mockData'
-import type { DataTableHeader, User, Attendance } from '@/types'
+import { useUserStore } from '@/stores/userStore'
+import { useAdminAttendanceStore } from '@/stores/adminAttendanceStore'
+import { ATTENDANCE_STATUS } from '@/constants'
+import type { DataTableHeader } from '@/types'
+
+// Stores
+const userStore = useUserStore()
+const attendanceStore = useAdminAttendanceStore()
 
 const today = new Date().toISOString().split('T')[0]
 const selectedDate = ref<string>(today || '')
 const selectedManagerId = ref<string | null>(null)
-const users = ref<User[]>([])
-const attendances = ref<Attendance[]>([])
-const loading = ref(true)
 
-// Firestoreからデータを取得
+// Storeのstateを使用
+const attendances = computed(
+  () => attendanceStore.getAttendancesByDateFromCache(selectedDate.value) || [],
+)
+const loading = computed(() => userStore.loading || attendanceStore.loading)
+
+// 初期データ取得
 onMounted(async () => {
   try {
-    // ユーザー一覧を取得
-    const usersSnapshot = await getDocs(collection(db, 'users'))
-    users.value = usersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as User[]
-
-    console.log('Total users loaded:', users.value.length)
-
-    // 初期日付の勤怠データを取得
-    await fetchAttendances()
+    await Promise.all([
+      userStore.fetchUsers(),
+      attendanceStore.fetchAttendancesByDate(selectedDate.value),
+    ])
   } catch (error) {
     console.error('Error fetching data:', error)
-  } finally {
-    loading.value = false
   }
 })
 
 // 日付が変更されたら勤怠データを再取得
-watch(selectedDate, () => {
-  fetchAttendances()
-})
-
-// 勤怠データを取得
-const fetchAttendances = async () => {
+watch(selectedDate, async () => {
   try {
-    const attendancesQuery = query(
-      collection(db, 'attendances'),
-      where('date', '==', selectedDate.value)
-    )
-    const attendancesSnapshot = await getDocs(attendancesQuery)
-    attendances.value = attendancesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      // TimestampをDateに変換
-      checkIn: doc.data().checkIn?.toDate(),
-      checkOut: doc.data().checkOut?.toDate(),
-    })) as Attendance[]
+    await attendanceStore.fetchAttendancesByDate(selectedDate.value)
   } catch (error) {
     console.error('Error fetching attendances:', error)
   }
-}
+})
 
-// 主任リスト（position が「主任」のユーザー）
+// 主任リスト（Storeから取得）
 const managers = computed(() => {
-  const managerList = users.value
-    .filter((user) => user.position === '主任' && user.role === 'employee')
-    .map((user) => ({
-      id: user.id,
-      name: user.name,
-      label: `${user.name} (${user.department} - ${user.employeeNumber})`,
-      department: user.department,
-      employeeNumber: user.employeeNumber,
-    }))
-
-  console.log('Managers found:', managerList.length)
-  return managerList
+  return userStore.managers.map((user) => ({
+    id: user.id,
+    name: user.name,
+    label: `${user.name} (${user.department} - ${user.employeeNumber})`,
+    department: user.department,
+    employeeNumber: user.employeeNumber,
+  }))
 })
 
 // 選択された主任の名前
 const selectedManagerName = computed(() => {
   if (!selectedManagerId.value) return ''
-  const manager = users.value.find((user) => user.id === selectedManagerId.value)
+  const manager = userStore.getUserById(selectedManagerId.value)
   return manager ? manager.name : ''
 })
 
@@ -242,10 +219,8 @@ const headers: DataTableHeader[] = [
 const teamAttendanceList = computed(() => {
   if (!selectedManagerId.value) return []
 
-  // 選択された主任の配下メンバーを取得
-  const teamMembers = users.value.filter(
-    (user) => user.managerId === selectedManagerId.value && user.role === 'employee',
-  )
+  // 選択された主任の配下メンバーを取得（Storeから）
+  const teamMembers = userStore.getTeamMembers(selectedManagerId.value)
 
   return teamMembers.map((user) => {
     const attendance = attendances.value.find(
@@ -296,11 +271,11 @@ const formatTime = (date: Date | string | null): string => {
 }
 
 const getStatusText = (status: string): string => {
-  return statusConfig[status]?.text || status
+  return ATTENDANCE_STATUS[status]?.text || status
 }
 
 const getStatusColor = (status: string): string => {
-  return statusConfig[status]?.color || 'grey'
+  return ATTENDANCE_STATUS[status]?.color || 'grey'
 }
 </script>
 

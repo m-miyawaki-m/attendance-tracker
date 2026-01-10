@@ -1,7 +1,13 @@
 // src/data/mockData.ts
-import type { User, Attendance, EditLog, StatusConfig, ChartData, Summary } from '@/types'
+import type { User, Attendance, EditLog, ChartData, Summary } from '@/types'
+import { ATTENDANCE_STATUS, DEPARTMENTS } from '@/constants'
 
-// ユーザーデータ（Firestoreから取得）
+/**
+ * モックユーザーデータ
+ *
+ * @deprecated このデータはモック認証 (src/stores/auth.ts) でのみ使用されます。
+ * 実際の運用では Firebase Authentication と Firestore の users コレクションを使用してください。
+ */
 export const mockUsers: User[] = [
   {
     id: 'SCRmr8ic0ed8XETzaMdec4scqZs2',
@@ -215,7 +221,12 @@ export const mockUsers: User[] = [
   }
 ]
 
-// 打刻データ
+/**
+ * モック勤怠データ
+ *
+ * @deprecated このデータは現在使用されていません。
+ * 実際の運用では Firestore の attendances コレクションを使用してください。
+ */
 export const mockAttendances: Attendance[] = [
   {
     id: 'att001',
@@ -351,7 +362,12 @@ export const mockAttendances: Attendance[] = [
   },
 ]
 
-// グラフ用データ
+/**
+ * モックグラフデータ
+ *
+ * @deprecated このデータは現在使用されていません。
+ * 実際のダッシュボードは Firestore から取得したデータを集計して表示します。
+ */
 export const mockChartData: ChartData = {
   attendanceRate: {
     categories: ['8月', '9月', '10月', '11月', '12月', '1月'],
@@ -390,7 +406,12 @@ export const mockChartData: ChartData = {
   },
 }
 
-// サマリーデータ
+/**
+ * モックサマリーデータ
+ *
+ * @deprecated このデータは現在使用されていません。
+ * 実際のダッシュボードは Firestore から取得したデータを集計して表示します。
+ */
 export const mockSummary: Summary = {
   todayAttendanceRate: 90,
   averageWorkHours: 8.5,
@@ -398,7 +419,12 @@ export const mockSummary: Summary = {
   todayEarlyLeaveCount: 1,
 }
 
-// 編集履歴
+/**
+ * モック編集履歴データ
+ *
+ * @deprecated このデータは現在使用されていません。
+ * 実際の運用では Firestore の editLogs コレクションを使用してください。
+ */
 export const mockEditLogs: EditLog[] = [
   {
     id: 'log001',
@@ -424,13 +450,10 @@ export const mockEditLogs: EditLog[] = [
   },
 ]
 
-// ステータス定義
-export const statusConfig: Record<string, StatusConfig> = {
-  present: { text: '正常', color: 'success' },
-  late: { text: '遅刻', color: 'warning' },
-  early_leave: { text: '早退', color: 'info' },
-  absent: { text: '欠勤', color: 'error' },
-}
+// ステータス定義（後方互換性のため再エクスポート）
+// @deprecated 直接 @/constants からインポートしてください
+export const statusConfig = ATTENDANCE_STATUS
 
-// 部署リスト
-export const departments: string[] = ['営業部', '開発部', '総務部', '管理部']
+// 部署リスト（後方互換性のため再エクスポート）
+// @deprecated 直接 @/constants からインポートしてください
+export const departments = DEPARTMENTS
