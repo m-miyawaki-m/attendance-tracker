@@ -75,7 +75,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { statusConfig } from '@/data/mockData'
+import { ATTENDANCE_STATUS } from '@/constants'
 import type { DataTableHeader, User, Attendance } from '@/types'
 
 const today = new Date().toISOString().split('T')[0]
@@ -180,11 +180,11 @@ const formatTime = (date: Date | string | null): string => {
 }
 
 const getStatusText = (status: string): string => {
-  return statusConfig[status]?.text || status
+  return ATTENDANCE_STATUS[status]?.text || status
 }
 
 const getStatusColor = (status: string): string => {
-  return statusConfig[status]?.color || 'grey'
+  return ATTENDANCE_STATUS[status]?.color || 'grey'
 }
 </script>
 

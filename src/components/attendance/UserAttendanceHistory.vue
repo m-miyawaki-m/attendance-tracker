@@ -114,7 +114,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
 import { db } from '@/firebase/config'
-import { statusConfig } from '@/data/mockData'
+import { ATTENDANCE_STATUS } from '@/constants'
 import type { DataTableHeader, Attendance } from '@/types'
 
 interface Props {
@@ -234,11 +234,11 @@ const formatWorkingHours = (minutes: number): string => {
 }
 
 const getStatusText = (status: string): string => {
-  return statusConfig[status]?.text || status
+  return ATTENDANCE_STATUS[status]?.text || status
 }
 
 const getStatusColor = (status: string): string => {
-  return statusConfig[status]?.color || 'grey'
+  return ATTENDANCE_STATUS[status]?.color || 'grey'
 }
 </script>
 
