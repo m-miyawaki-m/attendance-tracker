@@ -73,16 +73,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { collection, getDocs, query, where } from 'firebase/firestore'
-import { db } from '@/firebase/config'
+import { useUserStore } from '@/stores/userStore'
+import { useAdminAttendanceStore } from '@/stores/adminAttendanceStore'
 import { ATTENDANCE_STATUS } from '@/constants'
-import type { DataTableHeader, User, Attendance } from '@/types'
+import type { DataTableHeader } from '@/types'
+
+// Stores
+const userStore = useUserStore()
+const attendanceStore = useAdminAttendanceStore()
 
 const today = new Date().toISOString().split('T')[0]
 const selectedDate = ref<string>(today || '')
-const users = ref<User[]>([])
-const attendances = ref<Attendance[]>([])
-const loading = ref(true)
+
+// Storeのstateを使用
+const users = computed(() => userStore.employees)
+const attendances = computed(
+  () => attendanceStore.getAttendancesByDateFromCache(selectedDate.value) || [],
+)
+const loading = computed(() => userStore.loading || attendanceStore.loading)
 
 // データテーブルのヘッダー
 const headers: DataTableHeader[] = [
@@ -96,78 +104,51 @@ const headers: DataTableHeader[] = [
   { title: '備考', key: 'note', sortable: false },
 ]
 
-// Firestoreからデータを取得
+// 初期データ取得
 onMounted(async () => {
   try {
-    // ユーザー一覧を取得
-    const usersSnapshot = await getDocs(collection(db, 'users'))
-    users.value = usersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as User[]
-
-    // 勤怠データを取得（選択された日付）
-    await fetchAttendances()
+    await Promise.all([
+      userStore.fetchUsers(),
+      attendanceStore.fetchAttendancesByDate(selectedDate.value),
+    ])
   } catch (error) {
     console.error('Error fetching data:', error)
-  } finally {
-    loading.value = false
   }
 })
 
-// 日付が変更されたら勤怠データを再取得
-const fetchAttendances = async () => {
+// 日付変更時に勤怠データを再取得
+const handleDateChange = async () => {
   try {
-    const attendancesQuery = query(
-      collection(db, 'attendances'),
-      where('date', '==', selectedDate.value)
-    )
-    const attendancesSnapshot = await getDocs(attendancesQuery)
-    attendances.value = attendancesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      // TimestampをDateに変換
-      checkIn: doc.data().checkIn?.toDate(),
-      checkOut: doc.data().checkOut?.toDate(),
-    })) as Attendance[]
+    await attendanceStore.fetchAttendancesByDate(selectedDate.value)
   } catch (error) {
     console.error('Error fetching attendances:', error)
   }
 }
 
-// 日付変更時に勤怠データを再取得
-const handleDateChange = () => {
-  fetchAttendances()
-}
-
 // 従業員出勤状況リスト
 const employeeAttendanceList = computed(() => {
-  return users.value
-    .filter((user) => user.role === 'employee')
-    .map((user) => {
-      const attendance = attendances.value.find(
-        (att) => att.userId === user.id
-      )
+  return users.value.map((user) => {
+    const attendance = attendances.value.find((att) => att.userId === user.id)
 
-      // 住所を取得（モックデータなので簡易的な住所を返す）
-      let location = null
-      if (attendance?.checkInLocation) {
-        // 実際のアプリケーションでは逆ジオコーディングAPIを使用
-        // ここではモックとして東京都内の住所を返す
-        location = '東京都千代田区丸の内1-1-1'
-      }
+    // 住所を取得（モックデータなので簡易的な住所を返す）
+    let location = null
+    if (attendance?.checkInLocation) {
+      // 実際のアプリケーションでは逆ジオコーディングAPIを使用
+      // ここではモックとして東京都内の住所を返す
+      location = '東京都千代田区丸の内1-1-1'
+    }
 
-      return {
-        employeeNumber: user.employeeNumber || '-',
-        name: user.name,
-        position: user.position,
-        checkIn: attendance?.checkIn || null,
-        checkOut: attendance?.checkOut || null,
-        location: location,
-        note: attendance?.note || '',
-        status: attendance ? attendance.status : 'absent',
-      }
-    })
+    return {
+      employeeNumber: user.employeeNumber || '-',
+      name: user.name,
+      position: user.position,
+      checkIn: attendance?.checkIn || null,
+      checkOut: attendance?.checkOut || null,
+      location: location,
+      note: attendance?.note || '',
+      status: attendance ? attendance.status : 'absent',
+    }
+  })
 })
 
 // フォーマット関数
