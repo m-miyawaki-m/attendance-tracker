@@ -49,9 +49,10 @@ npm run seed:emulator
 
 | メールアドレス | パスワード | 役割 |
 |---|---|---|
-| admin@example.com | password123 | 管理者 |
-| user1@example.com | password123 | 一般ユーザー（山田太郎） |
-| user2@example.com | password123 | 一般ユーザー（佐藤花子） |
+| admin@example.com | adminadmin | 管理者 |
+| user01@example.com | user01 | 一般ユーザー |
+| user02@example.com | password123 | 一般ユーザー |
+| user03~user20@example.com | password123 | 一般ユーザー（18名） |
 
 ### 3. アプリケーションの起動
 

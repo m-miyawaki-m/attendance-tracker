@@ -21,25 +21,39 @@ const db = admin.firestore()
 const testUsers = [
   {
     email: 'admin@example.com',
-    password: 'password123',
-    displayName: '管理者ユーザー',
+    password: 'adminadmin',
+    displayName: '管理者',
     userData: {
-      name: '管理者ユーザー',
+      name: '管理者',
       email: 'admin@example.com',
       role: 'admin',
       department: '管理部',
       position: '部長',
+      employeeNumber: 'ADMIN001',
+      managerId: null,
+    },
+  },
+  {
+    email: 'user01@example.com',
+    password: 'user01',
+    displayName: 'ユーザー01',
+    userData: {
+      name: 'ユーザー01',
+      email: 'user01@example.com',
+      role: 'employee',
+      department: '営業部',
+      position: '一般',
       employeeNumber: 'EMP001',
       managerId: null,
     },
   },
   {
-    email: 'user1@example.com',
+    email: 'user02@example.com',
     password: 'password123',
-    displayName: '山田太郎',
+    displayName: 'ユーザー02',
     userData: {
-      name: '山田太郎',
-      email: 'user1@example.com',
+      name: 'ユーザー02',
+      email: 'user02@example.com',
       role: 'employee',
       department: '営業部',
       position: '一般',
@@ -47,21 +61,26 @@ const testUsers = [
       managerId: null,
     },
   },
-  {
-    email: 'user2@example.com',
+]
+
+// user03-user20を追加
+for (let i = 3; i <= 20; i++) {
+  const userNum = String(i).padStart(2, '0')
+  testUsers.push({
+    email: `user${userNum}@example.com`,
     password: 'password123',
-    displayName: '佐藤花子',
+    displayName: `ユーザー${userNum}`,
     userData: {
-      name: '佐藤花子',
-      email: 'user2@example.com',
+      name: `ユーザー${userNum}`,
+      email: `user${userNum}@example.com`,
       role: 'employee',
-      department: '営業部',
+      department: i % 3 === 0 ? '技術部' : i % 2 === 0 ? '営業部' : '総務部',
       position: '一般',
-      employeeNumber: 'EMP003',
+      employeeNumber: `EMP${userNum}`,
       managerId: null,
     },
-  },
-]
+  })
+}
 
 async function seedEmulator() {
   console.log('🌱 Seeding Firebase Emulator...')
