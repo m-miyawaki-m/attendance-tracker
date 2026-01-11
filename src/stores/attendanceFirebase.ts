@@ -246,6 +246,51 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     todayAttendance.value = await getTodayAttendance(userId)
   }
 
+  async function fetchAttendancesByDateRange(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<void> {
+    try {
+      loading.value = true
+
+      const start = new Date(startDate + 'T00:00:00')
+      const end = new Date(endDate + 'T23:59:59')
+
+      const q = query(
+        collection(db, 'attendances'),
+        where('userId', '==', userId),
+        where('checkIn', '>=', Timestamp.fromDate(start)),
+        where('checkIn', '<=', Timestamp.fromDate(end)),
+        orderBy('checkIn', 'desc'),
+      )
+
+      const snapshot = await getDocs(q)
+
+      attendances.value = snapshot.docs.map((docData) => {
+        const data = docData.data()
+        return {
+          id: docData.id,
+          userId: data.userId,
+          date: data.date,
+          checkIn: data.checkIn.toDate(),
+          checkInLocation: data.checkInLocation,
+          checkOut: data.checkOut?.toDate() || null,
+          checkOutLocation: data.checkOutLocation || null,
+          workingMinutes: data.workingMinutes,
+          status: data.status,
+          note: data.note,
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate(),
+        }
+      })
+    } catch (error) {
+      console.error('Error fetching attendances by date range:', error)
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     attendances,
@@ -256,6 +301,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     clockOut,
     getTodayAttendance,
     fetchMonthlyAttendances,
+    fetchAttendancesByDateRange,
     loadTodayAttendance,
   }
 })
