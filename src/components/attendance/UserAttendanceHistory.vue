@@ -161,9 +161,13 @@ watch([startDate, endDate], () => {
   fetchAttendances()
 })
 
-// ユーザーの出退勤履歴（ストアから取得）
+// ユーザーの出退勤履歴（ストアのキャッシュから取得）
 const userAttendanceHistory = computed(() => {
-  return attendanceStore.attendances
+  return attendanceStore.getAttendancesByDateRange(
+    props.userId,
+    startDate.value,
+    endDate.value,
+  )
 })
 
 // 統計情報

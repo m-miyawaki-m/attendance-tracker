@@ -1,6 +1,6 @@
 // src/stores/attendanceFirebase.ts
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   collection,
   addDoc,
@@ -18,7 +18,8 @@ import type { Attendance, Location } from '@/types'
 
 export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () => {
   // State
-  const attendances = ref<Attendance[]>([])
+  const attendances = ref<Attendance[]>([]) // 後方互換性のため残す
+  const attendancesByUser = ref<Map<string, Attendance[]>>(new Map())
   const todayAttendance = ref<Attendance | null>(null)
   const loading = ref(false)
 
@@ -263,27 +264,34 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
 
       const snapshot = await getDocs(q)
 
-      // 日付範囲でフィルタリングしてソート
-      attendances.value = snapshot.docs
-        .map((docData) => {
-          const data = docData.data()
-          return {
-            id: docData.id,
-            userId: data.userId,
-            date: data.date,
-            checkIn: data.checkIn.toDate(),
-            checkInLocation: data.checkInLocation,
-            checkOut: data.checkOut?.toDate() || null,
-            checkOutLocation: data.checkOutLocation || null,
-            workingMinutes: data.workingMinutes,
-            status: data.status,
-            note: data.note,
-            createdAt: data.createdAt?.toDate(),
-            updatedAt: data.updatedAt?.toDate(),
-          }
-        })
+      // 全データをマップ化
+      const allUserAttendances = snapshot.docs.map((docData) => {
+        const data = docData.data()
+        return {
+          id: docData.id,
+          userId: data.userId,
+          date: data.date,
+          checkIn: data.checkIn.toDate(),
+          checkInLocation: data.checkInLocation,
+          checkOut: data.checkOut?.toDate() || null,
+          checkOutLocation: data.checkOutLocation || null,
+          workingMinutes: data.workingMinutes,
+          status: data.status,
+          note: data.note,
+          createdAt: data.createdAt?.toDate(),
+          updatedAt: data.updatedAt?.toDate(),
+        }
+      })
+
+      // ユーザーごとのキャッシュに保存
+      attendancesByUser.value.set(userId, allUserAttendances)
+
+      // 日付範囲でフィルタリングしてソート（後方互換性のため）
+      attendances.value = allUserAttendances
         .filter((att) => att.date >= startDate && att.date <= endDate)
         .sort((a, b) => b.date.localeCompare(a.date))
+
+      console.log(`Cached ${allUserAttendances.length} attendance records for user ${userId}`)
     } catch (error) {
       console.error('Error fetching attendances by date range:', error)
     } finally {
@@ -291,17 +299,88 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     }
   }
 
+  /**
+   * ユーザーIDから勤怠データをキャッシュから取得
+   *
+   * @param userId - ユーザーID
+   * @returns キャッシュされている場合は勤怠データの配列、なければundefined
+   */
+  function getAttendancesByUserFromCache(userId: string): Attendance[] | undefined {
+    return attendancesByUser.value.get(userId)
+  }
+
+  /**
+   * 特定ユーザーの特定日付範囲の勤怠データを取得（キャッシュ対応）
+   *
+   * @param userId - ユーザーID
+   * @param startDate - YYYY-MM-DD形式の開始日
+   * @param endDate - YYYY-MM-DD形式の終了日
+   * @returns 勤怠データの配列
+   */
+  function getAttendancesByDateRange(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Attendance[] {
+    const cached = attendancesByUser.value.get(userId)
+    if (!cached) return []
+
+    return cached
+      .filter((att) => att.date >= startDate && att.date <= endDate)
+      .sort((a, b) => b.date.localeCompare(a.date))
+  }
+
+  /**
+   * 特定ユーザーのキャッシュをクリア
+   *
+   * @param userId - ユーザーID。指定しない場合は全てクリア
+   */
+  function clearCache(userId?: string): void {
+    if (userId) {
+      attendancesByUser.value.delete(userId)
+      console.log(`Cleared attendance cache for user ${userId}`)
+    } else {
+      attendancesByUser.value.clear()
+      attendances.value = []
+      console.log('Cleared all attendance cache')
+    }
+  }
+
+  // Getters
+  /**
+   * キャッシュされているユーザー一覧
+   */
+  const cachedUserIds = computed(() => Array.from(attendancesByUser.value.keys()))
+
+  /**
+   * キャッシュされているデータの総数
+   */
+  const totalCachedRecords = computed(() => {
+    let total = 0
+    attendancesByUser.value.forEach((records) => {
+      total += records.length
+    })
+    return total
+  })
+
   return {
     // State
     attendances,
+    attendancesByUser,
     todayAttendance,
     loading,
+    // Getters
+    cachedUserIds,
+    totalCachedRecords,
     // Actions
     clockIn,
     clockOut,
     getTodayAttendance,
     fetchMonthlyAttendances,
     fetchAttendancesByDateRange,
+    getAttendancesByUserFromCache,
+    getAttendancesByDateRange,
+    clearCache,
     loadTodayAttendance,
   }
 })
