@@ -23,6 +23,7 @@
     "firebase:emulators": "firebase emulators:start",
     "firebase:emulators:export": "firebase emulators:export ./firebase-data",
     "firebase:emulators:import": "firebase emulators:start --import=./firebase-data",
+    "seed:emulator": "tsx scripts/seedEmulator.ts",
     "seed:users": "tsx scripts/seedUsers.ts",
     "seed:attendances": "tsx scripts/seedAttendances.ts",
     "fetch:users": "tsx scripts/fetchUsers.ts",

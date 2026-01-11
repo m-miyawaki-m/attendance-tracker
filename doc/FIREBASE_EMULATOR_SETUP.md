@@ -37,7 +37,23 @@ npm run firebase:emulators
 - **Authentication Emulator**: `localhost:9099`
 - **Emulator UI**: `http://localhost:4000`
 
-### 2. アプリケーションの起動
+### 2. テストデータをシード
+
+Emulatorにテストユーザーとサンプルデータを追加します:
+
+```bash
+npm run seed:emulator
+```
+
+以下のテストユーザーが作成されます:
+
+| メールアドレス | パスワード | 役割 |
+|---|---|---|
+| admin@example.com | password123 | 管理者 |
+| user1@example.com | password123 | 一般ユーザー（山田太郎） |
+| user2@example.com | password123 | 一般ユーザー（佐藤花子） |
+
+### 3. アプリケーションの起動
 
 別のターミナルウィンドウで、開発サーバーを起動します:
 
@@ -54,6 +70,9 @@ npm run dev
 ```bash
 # Emulatorを起動
 npm run firebase:emulators
+
+# テストデータをシード（Emulator起動後に実行）
+npm run seed:emulator
 
 # データをエクスポートした状態で起動（前回の状態を復元）
 npm run firebase:emulators:import
