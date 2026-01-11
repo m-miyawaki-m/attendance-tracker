@@ -264,24 +264,33 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
 
       const snapshot = await getDocs(q)
 
-      // 全データをマップ化
-      const allUserAttendances = snapshot.docs.map((docData) => {
-        const data = docData.data()
-        return {
-          id: docData.id,
-          userId: data.userId,
-          date: data.date,
-          checkIn: data.checkIn.toDate(),
-          checkInLocation: data.checkInLocation,
-          checkOut: data.checkOut?.toDate() || null,
-          checkOutLocation: data.checkOutLocation || null,
-          workingMinutes: data.workingMinutes,
-          status: data.status,
-          note: data.note,
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-        }
-      })
+      // 全データをマップ化（checkInが必須のため、欠けているレコードは除外）
+      const allUserAttendances = snapshot.docs
+        .filter((docData) => {
+          const data = docData.data()
+          if (!data.checkIn) {
+            console.warn(`Attendance record ${docData.id} is missing checkIn field, skipping`)
+            return false
+          }
+          return true
+        })
+        .map((docData) => {
+          const data = docData.data()
+          return {
+            id: docData.id,
+            userId: data.userId,
+            date: data.date,
+            checkIn: data.checkIn.toDate(),
+            checkInLocation: data.checkInLocation,
+            checkOut: data.checkOut?.toDate() || null,
+            checkOutLocation: data.checkOutLocation || null,
+            workingMinutes: data.workingMinutes,
+            status: data.status,
+            note: data.note,
+            createdAt: data.createdAt?.toDate(),
+            updatedAt: data.updatedAt?.toDate(),
+          }
+        })
 
       // ユーザーごとのキャッシュに保存
       attendancesByUser.value.set(userId, allUserAttendances)
