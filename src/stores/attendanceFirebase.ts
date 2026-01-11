@@ -254,36 +254,36 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     try {
       loading.value = true
 
-      const start = new Date(startDate + 'T00:00:00')
-      const end = new Date(endDate + 'T23:59:59')
-
+      // userIdのみでクエリし、日付範囲はクライアント側でフィルタリング
+      // これによりFirestoreのインデックスが不要になる
       const q = query(
         collection(db, 'attendances'),
         where('userId', '==', userId),
-        where('checkIn', '>=', Timestamp.fromDate(start)),
-        where('checkIn', '<=', Timestamp.fromDate(end)),
-        orderBy('checkIn', 'desc'),
       )
 
       const snapshot = await getDocs(q)
 
-      attendances.value = snapshot.docs.map((docData) => {
-        const data = docData.data()
-        return {
-          id: docData.id,
-          userId: data.userId,
-          date: data.date,
-          checkIn: data.checkIn.toDate(),
-          checkInLocation: data.checkInLocation,
-          checkOut: data.checkOut?.toDate() || null,
-          checkOutLocation: data.checkOutLocation || null,
-          workingMinutes: data.workingMinutes,
-          status: data.status,
-          note: data.note,
-          createdAt: data.createdAt?.toDate(),
-          updatedAt: data.updatedAt?.toDate(),
-        }
-      })
+      // 日付範囲でフィルタリングしてソート
+      attendances.value = snapshot.docs
+        .map((docData) => {
+          const data = docData.data()
+          return {
+            id: docData.id,
+            userId: data.userId,
+            date: data.date,
+            checkIn: data.checkIn.toDate(),
+            checkInLocation: data.checkInLocation,
+            checkOut: data.checkOut?.toDate() || null,
+            checkOutLocation: data.checkOutLocation || null,
+            workingMinutes: data.workingMinutes,
+            status: data.status,
+            note: data.note,
+            createdAt: data.createdAt?.toDate(),
+            updatedAt: data.updatedAt?.toDate(),
+          }
+        })
+        .filter((att) => att.date >= startDate && att.date <= endDate)
+        .sort((a, b) => b.date.localeCompare(a.date))
     } catch (error) {
       console.error('Error fetching attendances by date range:', error)
     } finally {
