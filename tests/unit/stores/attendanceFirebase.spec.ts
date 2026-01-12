@@ -142,8 +142,9 @@ describe('attendanceFirebase Store', () => {
     })
 
     it('ATF-008: ステータス設定（9:00前出勤→status=present）', async () => {
-      // JST 08:30（9:00前）を設定。UTCでは前日23:30になるが、時刻判定のテストなので日付は気にしない
-      vi.setSystemTime(new Date('2026-01-11T23:30:00.000Z')) // JST 08:30
+      // ローカルタイムゾーンで08:30を設定（getHours()がローカル時刻を返すため）
+      const localDate = new Date(2026, 0, 12, 8, 30, 0) // 2026-01-12 08:30:00 ローカル時刻
+      vi.setSystemTime(localDate)
 
       mockCollection.mockReturnValue('attendances-collection')
       mockQuery.mockReturnValue('mock-query')
@@ -158,8 +159,9 @@ describe('attendanceFirebase Store', () => {
     })
 
     it('ATF-009: 遅刻判定（9:00以降出勤→status=late）', async () => {
-      // JSTで2026-01-12 09:30:00 = UTCで2026-01-12 00:30:00
-      vi.setSystemTime(new Date('2026-01-12T00:30:00.000Z'))
+      // ローカルタイムゾーンで09:30を設定（getHours()がローカル時刻を返すため）
+      const localDate = new Date(2026, 0, 12, 9, 30, 0) // 2026-01-12 09:30:00 ローカル時刻
+      vi.setSystemTime(localDate)
 
       mockCollection.mockReturnValue('attendances-collection')
       mockQuery.mockReturnValue('mock-query')
