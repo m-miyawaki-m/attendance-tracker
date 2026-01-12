@@ -29,18 +29,19 @@ const isDevelopment = import.meta.env.DEV && !isVercel
 // テスト環境かどうかを判定
 const isTest = import.meta.env.MODE === 'test' || typeof (import.meta as any).vitest !== 'undefined'
 
+// エミュレーター接続済みかどうかを追跡するフラグ
+let emulatorConnected = false
+
 if (isDevelopment && !isTest) {
   // Emulatorへの接続は一度だけ実行
-  // auth.configが存在しない場合もあるため、オプショナルチェーンを使用
-  if (!auth.config?.emulatorConfig) {
+  if (!emulatorConnected) {
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
     console.log('🔧 Connected to Auth Emulator')
-  }
 
-  // Firestoreも同様
-  if (!(db as any)._settings?.host?.includes('localhost')) {
     connectFirestoreEmulator(db, 'localhost', 8080)
     console.log('🔧 Connected to Firestore Emulator')
+
+    emulatorConnected = true
   }
 
   console.log('🚀 Running in LOCAL mode with Firebase Emulators')
