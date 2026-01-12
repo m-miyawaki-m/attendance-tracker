@@ -5,9 +5,9 @@
 | Phase | 対象 | テスト数 | 状態 | GitHub Issue | ブランチ |
 |-------|------|----------|------|--------------|----------|
 | Phase 1 | コアストア・メインビュー | 205 | ✅完了 | #17, #18, #19, #20 | feature/17-authFirebase-unit-test |
-| Phase 2 | 拡張ストア・管理ビュー・Composable | 112 | ✅完了 | #24 | feature/24-phase2-test-implementation |
+| Phase 2 | 拡張ストア・管理ビュー・Composable | 138 | ✅完了 | #24 | feature/24-phase2-test-implementation |
 | Phase 3 | 結合テスト・E2Eテスト | 未定 | 📋計画中 | - | - |
-| **合計** | - | **317+** | - | - | - |
+| **合計** | - | **343** | - | - | - |
 
 ---
 
@@ -129,6 +129,7 @@
 | TeamView.vue | views/admin/TeamView.spec.ts | TV-001〜TV-029 | 29 | ✅完了 |
 | EmployeeListView.vue | views/admin/EmployeeListView.spec.ts | EL-001〜EL-017 | 17 | ✅完了 |
 | useLogger.ts | composables/useLogger.spec.ts | UL-001〜UL-025 | 25 | ✅完了 |
+| adminAttendanceStore.ts | stores/adminAttendanceStore.spec.ts | AAS-001〜AAS-026 | 26 | ✅完了 |
 
 ### テスト内訳
 
@@ -180,6 +181,16 @@
 - searchLogs関数 (UL-019〜UL-022)
 - loggerインスタンス (UL-023)
 - ライフサイクル (UL-024〜UL-025)
+
+#### adminAttendanceStore.ts (26テスト)
+- State初期値 (AAS-001〜AAS-003)
+- Getters (AAS-004〜AAS-007)
+- fetchAttendancesByDateアクション (AAS-008〜AAS-013)
+- fetchAttendancesByDateRangeアクション (AAS-014〜AAS-017)
+- getAttendancesByDateFromCacheアクション (AAS-018〜AAS-019)
+- getUserAttendanceByDateアクション (AAS-020〜AAS-022)
+- clearCacheアクション (AAS-023〜AAS-025)
+- refreshAttendancesアクション (AAS-026)
 
 ### 関連ドキュメント
 - [PHASE2_TEST_CHECKLIST.md](./PHASE2_TEST_CHECKLIST.md)
@@ -246,7 +257,6 @@
 | 対象 | テストファイル | 推定テスト数 | 優先度 |
 |------|----------------|--------------|--------|
 | AttendanceListView.vue | views/AttendanceListView.spec.ts | 15〜20 | 中 |
-| adminAttendanceStore.ts | stores/adminAttendanceStore.spec.ts | 20〜25 | 中 |
 | AttendanceEditView.vue | views/admin/AttendanceEditView.spec.ts | 10〜15 | 低 |
 | AdminAttendanceList.vue | components/attendance/AdminAttendanceList.spec.ts | 10〜15 | 低 |
 | UserAttendanceHistory.vue | components/attendance/UserAttendanceHistory.spec.ts | 10〜15 | 低 |
@@ -259,8 +269,8 @@
 ### 現在の状況（2026-01-13）
 
 ```
-Test Files  14 passed (14)
-Tests       317 passed (317)
+Test Files  15 passed (15)
+Tests       343 passed (343)
 ```
 
 ### テストファイル一覧
@@ -281,16 +291,17 @@ Tests       317 passed (317)
 | tests/unit/views/admin/TeamView.spec.ts | 29 | Phase 2 |
 | tests/unit/views/admin/EmployeeListView.spec.ts | 17 | Phase 2 |
 | tests/unit/composables/useLogger.spec.ts | 25 | Phase 2 |
-| **合計** | **317** | - |
+| tests/unit/stores/adminAttendanceStore.spec.ts | 26 | Phase 2 |
+| **合計** | **343** | - |
 
 ### Phase別集計
 
 | Phase | テスト数 | 割合 |
 |-------|----------|------|
-| 既存（Phase 1以前） | 65 | 20.5% |
-| Phase 1 | 140 | 44.2% |
-| Phase 2 | 112 | 35.3% |
-| **合計** | **317** | 100% |
+| 既存（Phase 1以前） | 65 | 18.9% |
+| Phase 1 | 140 | 40.8% |
+| Phase 2 | 138 | 40.2% |
+| **合計** | **343** | 100% |
 
 ---
 

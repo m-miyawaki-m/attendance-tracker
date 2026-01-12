@@ -9,7 +9,8 @@
 | TeamView.vue | TV-001〜TV-029 | 29 | 29 | ✅完了 |
 | EmployeeListView.vue | EL-001〜EL-017 | 17 | 17 | ✅完了 |
 | useLogger.ts | UL-001〜UL-025 | 25 | 25 | ✅完了 |
-| **合計** | - | **112** | **112** | ✅完了 |
+| adminAttendanceStore.ts | AAS-001〜AAS-026 | 26 | 26 | ✅完了 |
+| **合計** | - | **138** | **138** | ✅完了 |
 
 ---
 
@@ -340,10 +341,80 @@
 
 ---
 
+## 6. adminAttendanceStore.ts テストチェックリスト
+
+### 6.1 State初期値テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-001 | attendancesByDate初期値 | [x] |
+| AAS-002 | loading初期値 | [x] |
+| AAS-003 | error初期値 | [x] |
+
+### 6.2 Getters テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-004 | cachedDates - 初期状態 | [x] |
+| AAS-005 | cachedDates - キャッシュあり | [x] |
+| AAS-006 | totalCachedRecords - 初期状態 | [x] |
+| AAS-007 | totalCachedRecords - キャッシュあり | [x] |
+
+### 6.3 fetchAttendancesByDate アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-008 | 初回取得成功 | [x] |
+| AAS-009 | キャッシュ利用 | [x] |
+| AAS-010 | loading状態 | [x] |
+| AAS-011 | Firestoreエラー | [x] |
+| AAS-012 | データマッピング | [x] |
+| AAS-013 | 位置情報なしデータ | [x] |
+
+### 6.4 fetchAttendancesByDateRange アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-014 | 日付範囲取得成功 | [x] |
+| AAS-015 | ユーザーID指定 | [x] |
+| AAS-016 | loading状態 | [x] |
+| AAS-017 | Firestoreエラー | [x] |
+
+### 6.5 getAttendancesByDateFromCache アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-018 | キャッシュあり | [x] |
+| AAS-019 | キャッシュなし | [x] |
+
+### 6.6 getUserAttendanceByDate アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-020 | データあり | [x] |
+| AAS-021 | 日付キャッシュなし | [x] |
+| AAS-022 | ユーザーデータなし | [x] |
+
+### 6.7 clearCache アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-023 | 特定日付クリア | [x] |
+| AAS-024 | 全キャッシュクリア | [x] |
+| AAS-025 | エラーもクリア | [x] |
+
+### 6.8 refreshAttendances アクション テスト
+
+| テストID | テストケース | 状態 |
+|----------|--------------|------|
+| AAS-026 | 強制再取得 | [x] |
+
+---
+
 ## 備考
 
-- テストID（LV-XXX、US-XXX、TV-XXX、EL-XXX、UL-XXX）はROADMAP.mdと統一
+- テストID（LV-XXX、US-XXX、TV-XXX、EL-XXX、UL-XXX、AAS-XXX）はROADMAP.mdと統一
 - 状態: [ ] = 未実装、[x] = 実装済み
-- 推定テスト関数数: 112
+- 推定テスト関数数: 138
 - 実装完了: 2026-01-13
-- 全テスト: 317テスト（Phase1: 205 + Phase2: 112）
+- 全テスト: 343テスト（Phase1: 205 + Phase2: 138）
