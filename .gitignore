@@ -40,3 +40,13 @@ coverage
 # Vitest
 __screenshots__/
 service-account.json
+
+# Firebase Emulator
+firebase-data/
+.firebase/
+ui-debug.log
+firestore-debug.log
+database-debug.log
+pubsub-debug.log
+emulator-seed-data.json
+emulator-export-data.json

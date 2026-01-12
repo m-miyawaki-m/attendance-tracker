@@ -41,6 +41,7 @@ vi.mock('firebase/app', () => ({
 
 vi.mock('firebase/auth', () => ({
   getAuth: vi.fn(() => ({})),
+  connectAuthEmulator: vi.fn(),
   signInWithEmailAndPassword: vi.fn(),
   signOut: vi.fn(),
   onAuthStateChanged: vi.fn(),
@@ -48,6 +49,7 @@ vi.mock('firebase/auth', () => ({
 
 vi.mock('firebase/firestore', () => ({
   getFirestore: vi.fn(() => ({})),
+  connectFirestoreEmulator: vi.fn(),
   doc: vi.fn(),
   getDoc: vi.fn(),
   collection: vi.fn(),

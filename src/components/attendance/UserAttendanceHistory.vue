@@ -43,7 +43,7 @@
               :headers="headers"
               :items="userAttendanceHistory"
               :items-per-page="10"
-              :loading="loading"
+              :loading="attendanceStore.loading"
               class="elevation-0"
             >
               <template #[`item.date`]="{ item }">
@@ -112,10 +112,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
-import { db } from '@/firebase/config'
+import { useAttendanceFirebaseStore } from '@/stores/attendanceFirebase'
 import { ATTENDANCE_STATUS } from '@/constants'
-import type { DataTableHeader, Attendance } from '@/types'
+import type { DataTableHeader } from '@/types'
 
 interface Props {
   userId: string
@@ -123,15 +122,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// Pinia Store
+const attendanceStore = useAttendanceFirebaseStore()
+
 // 日付範囲の初期値（過去30日間）
 const today = new Date()
 const thirtyDaysAgo = new Date(today)
 thirtyDaysAgo.setDate(today.getDate() - 30)
 
-const startDate = ref<string>(thirtyDaysAgo.toISOString().split('T')[0])
-const endDate = ref<string>(today.toISOString().split('T')[0])
-const attendances = ref<Attendance[]>([])
-const loading = ref(true)
+const startDate = ref<string>(String(thirtyDaysAgo.toISOString().split('T')[0]))
+const endDate = ref<string>(String(today.toISOString().split('T')[0]))
 
 // データテーブルのヘッダー
 const headers: DataTableHeader[] = [
@@ -143,34 +143,13 @@ const headers: DataTableHeader[] = [
   { title: '備考', key: 'note', sortable: false },
 ]
 
-// Firestoreから勤怠データを取得
+// Storeから勤怠データを取得
 const fetchAttendances = async () => {
-  loading.value = true
-  try {
-    const attendancesQuery = query(
-      collection(db, 'attendances'),
-      where('userId', '==', props.userId)
-    )
-    const attendancesSnapshot = await getDocs(attendancesQuery)
-    const allAttendances = attendancesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      // TimestampをDateに変換
-      checkIn: doc.data().checkIn?.toDate(),
-      checkOut: doc.data().checkOut?.toDate(),
-    })) as Attendance[]
-
-    // クライアント側で日付フィルタとソートを実行
-    attendances.value = allAttendances
-      .filter((att) => {
-        return att.date >= startDate.value && att.date <= endDate.value
-      })
-      .sort((a, b) => b.date.localeCompare(a.date))
-  } catch (error) {
-    console.error('Error fetching attendances:', error)
-  } finally {
-    loading.value = false
-  }
+  await attendanceStore.fetchAttendancesByDateRange(
+    props.userId,
+    startDate.value,
+    endDate.value,
+  )
 }
 
 onMounted(() => {
@@ -182,9 +161,13 @@ watch([startDate, endDate], () => {
   fetchAttendances()
 })
 
-// ユーザーの出退勤履歴
+// ユーザーの出退勤履歴（ストアのキャッシュから取得）
 const userAttendanceHistory = computed(() => {
-  return attendances.value
+  return attendanceStore.getAttendancesByDateRange(
+    props.userId,
+    startDate.value,
+    endDate.value,
+  )
 })
 
 // 統計情報
