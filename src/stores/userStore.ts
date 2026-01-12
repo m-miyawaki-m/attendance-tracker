@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 import type { User } from '@/types'
+import { logger } from '@/utils/logger'
 
 /**
  * ユーザー情報を管理するStore
@@ -58,12 +59,13 @@ export const useUserStore = defineStore('user', () => {
    * @param forceRefresh - trueの場合、キャッシュを無視して強制的に再取得
    */
   async function fetchUsers(forceRefresh = false): Promise<void> {
+    logger.debug('fetchUsers() 開始', { forceRefresh })
     // キャッシュチェック: 5分以内なら再利用
     if (!forceRefresh && users.value.length > 0 && lastFetched.value) {
       const cacheAge = Date.now() - lastFetched.value.getTime()
       const CACHE_DURATION = 5 * 60 * 1000 // 5分
       if (cacheAge < CACHE_DURATION) {
-        console.log('Using cached user data')
+        logger.debug('キャッシュされたユーザーデータを使用')
         return
       }
     }
@@ -72,6 +74,7 @@ export const useUserStore = defineStore('user', () => {
       loading.value = true
       error.value = null
 
+      logger.info('Firestoreからユーザー一覧を取得中...')
       const snapshot = await getDocs(collection(db, 'users'))
       users.value = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -87,9 +90,10 @@ export const useUserStore = defineStore('user', () => {
       })) as User[]
 
       lastFetched.value = new Date()
-      console.log('Fetched users from Firestore:', users.value.length)
+      logger.info('ユーザー一覧取得完了', { count: users.value.length })
+      logger.debug('fetchUsers() 終了')
     } catch (err) {
-      console.error('Error fetching users:', err)
+      logger.error('ユーザー一覧取得エラー', err)
       error.value = err instanceof Error ? err.message : 'ユーザー情報の取得に失敗しました'
       throw err
     } finally {
@@ -131,6 +135,7 @@ export const useUserStore = defineStore('user', () => {
    * キャッシュをクリア（強制的に再取得させたい場合に使用）
    */
   function clearCache(): void {
+    logger.info('ユーザーキャッシュをクリア')
     users.value = []
     lastFetched.value = null
     error.value = null
