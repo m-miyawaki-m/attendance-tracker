@@ -26,20 +26,24 @@ export const db = getFirestore(app)
 const isVercel = import.meta.env.VERCEL === '1' || import.meta.env.VERCEL === 'true'
 const isDevelopment = import.meta.env.DEV && !isVercel
 
-if (isDevelopment) {
+// テスト環境かどうかを判定
+const isTest = import.meta.env.MODE === 'test' || typeof (import.meta as any).vitest !== 'undefined'
+
+if (isDevelopment && !isTest) {
   // Emulatorへの接続は一度だけ実行
-  if (!auth.config.emulatorConfig) {
+  // auth.configが存在しない場合もあるため、オプショナルチェーンを使用
+  if (!auth.config?.emulatorConfig) {
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
     console.log('🔧 Connected to Auth Emulator')
   }
 
   // Firestoreも同様
-  if (!(db as any)._settings.host.includes('localhost')) {
+  if (!(db as any)._settings?.host?.includes('localhost')) {
     connectFirestoreEmulator(db, 'localhost', 8080)
     console.log('🔧 Connected to Firestore Emulator')
   }
 
   console.log('🚀 Running in LOCAL mode with Firebase Emulators')
-} else {
+} else if (!isTest) {
   console.log('☁️  Running in PRODUCTION mode with Firebase')
 }
