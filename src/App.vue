@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+import DevLogViewer from '@/components/dev/DevLogViewer.vue'
 import { useAuthFirebaseStore } from '@/stores/authFirebase'
 
 const route = useRoute()
@@ -40,6 +41,9 @@ const layoutConfig = computed(() => {
     <RouterView />
   </MainLayout>
   <RouterView v-else />
+
+  <!-- 開発用ログビューア（DEV環境のみ表示） -->
+  <DevLogViewer />
 </template>
 
 <style scoped></style>
