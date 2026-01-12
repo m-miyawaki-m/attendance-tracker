@@ -111,6 +111,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthFirebaseStore } from '@/stores/authFirebase'
+import { logger } from '@/utils/logger'
 
 const router = useRouter()
 const authStore = useAuthFirebaseStore()
@@ -124,29 +125,36 @@ const snackbarMessage = ref<string>('')
 const snackbarColor = ref<string>('success')
 
 const handleLogin = async (): Promise<void> => {
+  logger.debug('handleLogin() 開始')
   loading.value = true
 
   try {
+    logger.info('ログイン試行', { email: email.value })
     const success = await authStore.login(email.value, password.value)
 
     if (success) {
+      logger.info('ログイン成功', { isAdmin: authStore.isAdmin })
       showSnackbar('ログインしました', 'success')
       setTimeout(() => {
         // 管理者の場合はダッシュボードへ、一般ユーザーはホームへ
         if (authStore.isAdmin) {
+          logger.info('管理者ダッシュボードへ遷移')
           router.push('/admin/dashboard')
         } else {
+          logger.info('ホームへ遷移')
           router.push('/')
         }
       }, 500)
     } else {
+      logger.warn('ログイン失敗: 認証エラー', { email: email.value })
       showSnackbar('メールアドレスまたはパスワードが正しくありません', 'error')
     }
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('ログイン例外エラー', { email: email.value, error })
     showSnackbar('ログインに失敗しました', 'error')
   } finally {
     loading.value = false
+    logger.debug('handleLogin() 終了')
   }
 }
 
