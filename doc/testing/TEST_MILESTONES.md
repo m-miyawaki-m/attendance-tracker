@@ -4,8 +4,8 @@
 
 | Phase | 対象 | テスト数 | 状態 | GitHub Issue | ブランチ |
 |-------|------|----------|------|--------------|----------|
-| Phase 1 | コアストア・メインビュー | 205 | ✅完了 | #17, #18, #19, #20 | feature/17-authFirebase-unit-test |
-| Phase 2 | 拡張ストア・管理ビュー・Composable | 138 | ✅完了 | #24 | feature/24-phase2-test-implementation |
+| Phase 1 | コアストア・メインビュー | 140 | ✅完了 | #17, #18, #19, #20 | feature/17-authFirebase-unit-test |
+| Phase 2 | 拡張ストア・管理ビュー・Composable・既存テスト | 203 | ✅完了 | #24 | feature/24-phase2-test-implementation |
 | Phase 3 | 結合テスト・E2Eテスト | 未定 | 📋計画中 | - | - |
 | **合計** | - | **343** | - | - | - |
 
@@ -93,26 +93,17 @@
 - グラフオプション (DV-026〜DV-029)
 - 表示 (DV-030〜DV-032)
 
-### 既存テスト（Phase 1以前）
-
-| 対象 | テストファイル | テスト数 |
-|------|----------------|----------|
-| mockData | data/mockData.spec.ts | 18 |
-| auth.ts (モック版) | stores/auth.spec.ts | 9 |
-| logger.ts | utils/logger.spec.ts | 17 |
-| App.vue | src/__tests__/App.spec.ts | 4 |
-| MainLayout.vue | src/layouts/__tests__/MainLayout.spec.ts | 17 |
-
 ### 関連ドキュメント
 - [PHASE1_TEST_CHECKLIST.md](./PHASE1_TEST_CHECKLIST.md)
 - [PHASE1_ROADMAP.md](./PHASE1_ROADMAP.md)
 
 ---
 
-## Phase 2: 拡張ストア・管理ビュー・Composable ✅完了
+## Phase 2: 拡張ストア・管理ビュー・Composable・既存テスト統合 ✅完了
 
 ### 目的
 ユーザー管理、管理者向け一覧表示、ログ管理機能のテストを実装し、システム全体のカバレッジを向上する。
+また、Phase 1以前に存在した既存テストをPhase 2管理対象として統合し、テストIDを付与してトレーサビリティを確保する。
 
 ### GitHub Issue
 - #24 Phase2 単体テスト実装 (CLOSED)
@@ -130,6 +121,12 @@
 | EmployeeListView.vue | views/admin/EmployeeListView.spec.ts | EL-001〜EL-017 | 17 | ✅完了 |
 | useLogger.ts | composables/useLogger.spec.ts | UL-001〜UL-025 | 25 | ✅完了 |
 | adminAttendanceStore.ts | stores/adminAttendanceStore.spec.ts | AAS-001〜AAS-026 | 26 | ✅完了 |
+| **--- 既存テスト統合 ---** | - | - | - | - |
+| mockData.ts | data/mockData.spec.ts | MD-001〜MD-018 | 18 | ✅完了 |
+| auth.ts（モック版） | stores/auth.spec.ts | AUTH-001〜AUTH-009 | 9 | ✅完了 |
+| logger.ts | utils/logger.spec.ts | LOG-001〜LOG-017 | 17 | ✅完了 |
+| App.vue | src/__tests__/App.spec.ts | APP-001〜APP-004 | 4 | ✅完了 |
+| MainLayout.vue | src/layouts/__tests__/MainLayout.spec.ts | ML-001〜ML-017 | 17 | ✅完了 |
 
 ### テスト内訳
 
@@ -277,11 +274,6 @@ Tests       343 passed (343)
 
 | テストファイル | テスト数 | Phase |
 |----------------|----------|-------|
-| src/__tests__/App.spec.ts | 4 | 既存 |
-| src/layouts/__tests__/MainLayout.spec.ts | 17 | 既存 |
-| tests/unit/data/mockData.spec.ts | 18 | 既存 |
-| tests/unit/stores/auth.spec.ts | 9 | 既存 |
-| tests/unit/utils/logger.spec.ts | 17 | 既存 |
 | tests/unit/stores/authFirebase.spec.ts | 21 | Phase 1 |
 | tests/unit/stores/attendanceFirebase.spec.ts | 49 | Phase 1 |
 | tests/unit/views/HomeView.spec.ts | 38 | Phase 1 |
@@ -292,15 +284,20 @@ Tests       343 passed (343)
 | tests/unit/views/admin/EmployeeListView.spec.ts | 17 | Phase 2 |
 | tests/unit/composables/useLogger.spec.ts | 25 | Phase 2 |
 | tests/unit/stores/adminAttendanceStore.spec.ts | 26 | Phase 2 |
+| tests/unit/data/mockData.spec.ts | 18 | Phase 2（統合） |
+| tests/unit/stores/auth.spec.ts | 9 | Phase 2（統合） |
+| tests/unit/utils/logger.spec.ts | 17 | Phase 2（統合） |
+| src/__tests__/App.spec.ts | 4 | Phase 2（統合） |
+| src/layouts/__tests__/MainLayout.spec.ts | 17 | Phase 2（統合） |
 | **合計** | **343** | - |
 
 ### Phase別集計
 
 | Phase | テスト数 | 割合 |
 |-------|----------|------|
-| 既存（Phase 1以前） | 65 | 18.9% |
 | Phase 1 | 140 | 40.8% |
-| Phase 2 | 138 | 40.2% |
+| Phase 2（新規） | 138 | 40.2% |
+| Phase 2（統合） | 65 | 19.0% |
 | **合計** | **343** | 100% |
 
 ---
