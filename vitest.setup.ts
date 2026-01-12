@@ -68,9 +68,18 @@ vi.mock('firebase/firestore', () => ({
   collection: vi.fn(),
   query: vi.fn(),
   where: vi.fn(),
+  orderBy: vi.fn(),
   getDocs: vi.fn(),
   addDoc: vi.fn(),
   updateDoc: vi.fn(),
   deleteDoc: vi.fn(),
   serverTimestamp: vi.fn(),
+  Timestamp: {
+    fromDate: vi.fn((date) => ({
+      toDate: () => date,
+    })),
+    now: vi.fn(() => ({
+      toDate: () => new Date(),
+    })),
+  },
 }))
