@@ -149,6 +149,7 @@ import { useUserStore } from '@/stores/userStore'
 import { useAdminAttendanceStore } from '@/stores/adminAttendanceStore'
 import { ATTENDANCE_STATUS } from '@/constants'
 import type { DataTableHeader } from '@/types'
+import { logger } from '@/utils/logger'
 
 // Stores
 const userStore = useUserStore()
@@ -166,22 +167,45 @@ const loading = computed(() => userStore.loading || attendanceStore.loading)
 
 // 初期データ取得
 onMounted(async () => {
+  logger.debug('TeamView onMounted() 開始')
   try {
+    logger.info('チーム勤怠画面の初期データを取得中...', { date: selectedDate.value })
     await Promise.all([
       userStore.fetchUsers(),
       attendanceStore.fetchAttendancesByDate(selectedDate.value),
     ])
+    logger.info('チーム勤怠画面の初期データ取得完了', {
+      managersCount: managers.value.length,
+    })
   } catch (error) {
-    console.error('Error fetching data:', error)
+    logger.error('チーム勤怠画面の初期データ取得エラー', { error })
   }
+  logger.debug('TeamView onMounted() 終了')
 })
 
 // 日付が変更されたら勤怠データを再取得
-watch(selectedDate, async () => {
+watch(selectedDate, async (newDate) => {
+  logger.debug('日付変更検知', { newDate })
   try {
-    await attendanceStore.fetchAttendancesByDate(selectedDate.value)
+    logger.info('日付変更による勤怠データ再取得中...', { date: newDate })
+    await attendanceStore.fetchAttendancesByDate(newDate)
+    logger.info('日付変更による勤怠データ取得完了')
   } catch (error) {
-    console.error('Error fetching attendances:', error)
+    logger.error('日付変更による勤怠データ取得エラー', { date: newDate, error })
+  }
+})
+
+// 主任が変更されたらログを出力
+watch(selectedManagerId, (newManagerId) => {
+  if (newManagerId) {
+    const manager = userStore.getUserById(newManagerId)
+    logger.info('主任選択変更', {
+      managerId: newManagerId,
+      managerName: manager?.name,
+      teamMemberCount: userStore.getTeamMembers(newManagerId).length,
+    })
+  } else {
+    logger.debug('主任選択解除')
   }
 })
 

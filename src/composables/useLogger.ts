@@ -1,15 +1,14 @@
 // src/composables/useLogger.ts
 // ログ機能を提供するComposable
 
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import {
   logger,
   getLogs,
   clearLogs,
   downloadLogsAsJson,
   downloadLogsAsText,
-  getLogCount,
-  getLogSize,
+  onLogUpdate,
   type LogEntry,
   type LogLevel,
 } from '@/utils/logger'
@@ -25,16 +24,27 @@ export function useLogger() {
     logs.value = getLogs()
   }
 
-  /**
-   * ログの件数
-   */
-  const logCount = computed(() => getLogCount())
+  // ログ更新時に自動的にリフレッシュ
+  const unsubscribe = onLogUpdate(() => {
+    logs.value = getLogs()
+  })
+
+  // コンポーネントがアンマウントされたらリスナーを解除
+  onUnmounted(() => {
+    unsubscribe()
+  })
 
   /**
-   * ログのサイズ（人間が読みやすい形式）
+   * ログの件数（logs.valueに依存してリアクティブに更新）
+   */
+  const logCount = computed(() => logs.value.length)
+
+  /**
+   * ログのサイズ（人間が読みやすい形式、logs.valueに依存）
    */
   const logSizeFormatted = computed(() => {
-    const size = getLogSize()
+    // logs.valueを参照することでリアクティブにする
+    const size = JSON.stringify(logs.value).length
     if (size < 1024) return `${size} B`
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
     return `${(size / 1024 / 1024).toFixed(1)} MB`

@@ -16,6 +16,14 @@ const isOpen = ref(false)
 const selectedLevel = ref<LogLevel | 'all'>('all')
 const searchKeyword = ref('')
 
+// パネルを開いた時にログを更新
+function togglePanel(): void {
+  isOpen.value = !isOpen.value
+  if (isOpen.value) {
+    refreshLogs()
+  }
+}
+
 const filteredLogs = computed(() => {
   let result = logs.value
 
@@ -82,7 +90,7 @@ function handleClear(): void {
       :color="isOpen ? 'primary' : 'grey'"
       icon
       size="small"
-      @click="isOpen = !isOpen"
+      @click="togglePanel"
     >
       <v-icon>mdi-bug</v-icon>
       <v-badge v-if="logCount > 0" :content="logCount" color="error" floating />
@@ -113,8 +121,11 @@ function handleClear(): void {
             { title: 'Warn', value: 'warn' },
             { title: 'Error', value: 'error' },
           ]"
+          item-title="title"
+          item-value="value"
           density="compact"
           hide-details
+          :menu-props="{ zIndex: 10001 }"
           style="max-width: 120px"
         />
 

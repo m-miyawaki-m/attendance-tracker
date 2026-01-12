@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 import type { Attendance } from '@/types'
+import { logger } from '@/utils/logger'
 
 /**
  * 管理者向け勤怠データを管理するStore
@@ -42,9 +43,10 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
    * @returns 勤怠データの配列
    */
   async function fetchAttendancesByDate(date: string): Promise<Attendance[]> {
+    logger.debug('fetchAttendancesByDate() 開始', { date })
     // キャッシュチェック
     if (attendancesByDate.value.has(date)) {
-      console.log(`Using cached attendance data for ${date}`)
+      logger.debug('キャッシュされた勤怠データを使用', { date })
       return attendancesByDate.value.get(date)!
     }
 
@@ -52,6 +54,7 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
       loading.value = true
       error.value = null
 
+      logger.info('Firestoreから日付別勤怠データを取得中...', { date })
       const q = query(collection(db, 'attendances'), where('date', '==', date))
       const snapshot = await getDocs(q)
 
@@ -74,15 +77,16 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
       }) as Attendance[]
 
       attendancesByDate.value.set(date, attendances)
-      console.log(`Fetched ${attendances.length} attendance records for ${date}`)
+      logger.info('日付別勤怠データ取得完了', { date, count: attendances.length })
 
       return attendances
     } catch (err) {
-      console.error('Error fetching attendances:', err)
+      logger.error('日付別勤怠データ取得エラー', { date, error: err })
       error.value = err instanceof Error ? err.message : '勤怠データの取得に失敗しました'
       throw err
     } finally {
       loading.value = false
+      logger.debug('fetchAttendancesByDate() 終了')
     }
   }
 
@@ -99,6 +103,7 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
     endDate: string,
     userId?: string,
   ): Promise<Attendance[]> {
+    logger.debug('fetchAttendancesByDateRange() 開始', { startDate, endDate, userId })
     try {
       loading.value = true
       error.value = null
@@ -122,6 +127,7 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
         )
       }
 
+      logger.info('Firestoreから日付範囲の勤怠データを取得中...', { startDate, endDate, userId })
       const snapshot = await getDocs(q)
 
       const attendances = snapshot.docs.map((doc) => {
@@ -142,17 +148,20 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
         }
       }) as Attendance[]
 
-      console.log(
-        `Fetched ${attendances.length} attendance records from ${startDate} to ${endDate}`,
-      )
+      logger.info('日付範囲の勤怠データ取得完了', {
+        startDate,
+        endDate,
+        count: attendances.length,
+      })
 
       return attendances
     } catch (err) {
-      console.error('Error fetching attendances by date range:', err)
+      logger.error('日付範囲の勤怠データ取得エラー', { startDate, endDate, userId, error: err })
       error.value = err instanceof Error ? err.message : '勤怠データの取得に失敗しました'
       throw err
     } finally {
       loading.value = false
+      logger.debug('fetchAttendancesByDateRange() 終了')
     }
   }
 
@@ -188,10 +197,10 @@ export const useAdminAttendanceStore = defineStore('adminAttendance', () => {
   function clearCache(date?: string): void {
     if (date) {
       attendancesByDate.value.delete(date)
-      console.log(`Cleared cache for ${date}`)
+      logger.info('日付別勤怠キャッシュをクリア', { date })
     } else {
       attendancesByDate.value.clear()
-      console.log('Cleared all attendance cache')
+      logger.info('全ての勤怠キャッシュをクリア')
     }
     error.value = null
   }

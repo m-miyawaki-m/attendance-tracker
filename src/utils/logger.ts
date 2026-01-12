@@ -14,6 +14,28 @@ const STORAGE_KEY = 'app_logs'
 const MAX_LOGS = 1000 // 最大保存件数
 const MAX_STORAGE_SIZE = 4 * 1024 * 1024 // 4MB（LocalStorageの安全な上限）
 
+// ログ更新リスナー
+type LogUpdateListener = () => void
+const logUpdateListeners: Set<LogUpdateListener> = new Set()
+
+/**
+ * ログ更新リスナーを登録
+ */
+export function onLogUpdate(listener: LogUpdateListener): () => void {
+  logUpdateListeners.add(listener)
+  // unsubscribe関数を返す
+  return () => {
+    logUpdateListeners.delete(listener)
+  }
+}
+
+/**
+ * ログ更新を通知
+ */
+function notifyLogUpdate(): void {
+  logUpdateListeners.forEach((listener) => listener())
+}
+
 /**
  * ログをLocalStorageから取得
  */
@@ -66,6 +88,9 @@ function addLogEntry(level: LogLevel, message: string, data?: unknown): void {
   }
 
   saveLogs(logs)
+
+  // リスナーに通知
+  notifyLogUpdate()
 }
 
 /**
