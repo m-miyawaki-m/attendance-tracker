@@ -24,11 +24,19 @@ jobs:
 
       - run: npm ci
 
-      - name: Run tests
-        run: npm run test:unit -- --run
+      - name: Run tests with coverage
+        run: npm run test:coverage
 
       - name: Type check
         run: npm run type-check
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-develop
+          path: coverage/
+          retention-days: 30
 
   deploy-preview:
     runs-on: ubuntu-latest
