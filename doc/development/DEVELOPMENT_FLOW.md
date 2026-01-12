@@ -248,5 +248,5 @@ npm run seed:emulator
 ## 関連ドキュメント
 
 - [Firebase Emulator セットアップ](./FIREBASE_EMULATOR_SETUP.md)
-- [基本設計](./basic-design.md)
-- [コンポーネントツリー](./component-tree.md)
+- [基本設計](../design/basic-design.md)
+- [コンポーネントツリー](../design/component-tree.md)

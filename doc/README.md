@@ -155,7 +155,7 @@ attendance-tracker/
 
 ## 開発環境
 
-詳細は [開発フロー](./DEVELOPMENT_FLOW.md) を参照してください。
+詳細は [開発フロー](./development/DEVELOPMENT_FLOW.md) を参照してください。
 
 ### ブランチ戦略
 
@@ -178,7 +178,7 @@ npm run seed:emulator
 npm run dev
 ```
 
-詳細は [Firebase Emulator セットアップ](./FIREBASE_EMULATOR_SETUP.md) を参照してください。
+詳細は [Firebase Emulator セットアップ](./development/FIREBASE_EMULATOR_SETUP.md) を参照してください。
 
 ## テストアカウント
 
