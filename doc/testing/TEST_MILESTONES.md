@@ -2,12 +2,29 @@
 
 ## 概要
 
-| Phase | 対象 | テスト数 | 状態 |
-|-------|------|----------|------|
-| Phase 1 | コアストア・メインビュー | 205 | ✅完了 |
-| Phase 2 | 拡張ストア・管理ビュー・Composable | 112 | ✅完了 |
-| Phase 3 | 結合テスト・E2Eテスト | 未定 | 📋計画中 |
-| **合計** | - | **317+** | - |
+| Phase | 対象 | テスト数 | 状態 | GitHub Issue | ブランチ |
+|-------|------|----------|------|--------------|----------|
+| Phase 1 | コアストア・メインビュー | 205 | ✅完了 | #17, #18, #19, #20 | feature/17-authFirebase-unit-test |
+| Phase 2 | 拡張ストア・管理ビュー・Composable | 112 | ✅完了 | #24 | feature/24-phase2-test-implementation |
+| Phase 3 | 結合テスト・E2Eテスト | 未定 | 📋計画中 | - | - |
+| **合計** | - | **317+** | - | - | - |
+
+---
+
+## GitHub Issue・ブランチ命名規則
+
+### 命名規則
+- **Issue**: `[Phase{N}] {対象} 単体テスト実装`
+- **ブランチ**: `feature/{issue番号}-{機能名}`
+
+### Phase 1 関連Issue（クローズ済み）
+- [#17](https://github.com/m-miyawaki-m/attendance-tracker/issues/17) - authFirebase.ts 単体テスト実装
+- [#18](https://github.com/m-miyawaki-m/attendance-tracker/issues/18) - attendanceFirebase.ts 単体テスト実装
+- [#19](https://github.com/m-miyawaki-m/attendance-tracker/issues/19) - HomeView.vue 単体テスト実装
+- [#20](https://github.com/m-miyawaki-m/attendance-tracker/issues/20) - DashboardView.vue 単体テスト実装
+
+### Phase 2 関連Issue（クローズ済み）
+- [#24](https://github.com/m-miyawaki-m/attendance-tracker/issues/24) - Phase2 単体テスト実装 (112テスト)
 
 ---
 
@@ -15,6 +32,15 @@
 
 ### 目的
 認証・打刻機能の中核部分のテストを実装し、システムの基盤品質を保証する。
+
+### GitHub Issue
+- #17 authFirebase.ts (CLOSED)
+- #18 attendanceFirebase.ts (CLOSED)
+- #19 HomeView.vue (CLOSED)
+- #20 DashboardView.vue (CLOSED)
+
+### ブランチ
+`feature/17-authFirebase-unit-test`
 
 ### 実装対象
 
@@ -87,6 +113,12 @@
 
 ### 目的
 ユーザー管理、管理者向け一覧表示、ログ管理機能のテストを実装し、システム全体のカバレッジを向上する。
+
+### GitHub Issue
+- #24 Phase2 単体テスト実装 (CLOSED)
+
+### ブランチ
+`feature/24-phase2-test-implementation`
 
 ### 実装対象
 
