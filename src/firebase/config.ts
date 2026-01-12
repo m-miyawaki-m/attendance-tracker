@@ -1,7 +1,7 @@
 // src/firebase/config.ts
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,3 +20,31 @@ export const auth = getAuth(app)
 
 // Firestore
 export const db = getFirestore(app)
+
+// ローカル環境の場合、Firebase Emulatorに接続
+// Vercelビルド環境（VERCEL=1）では本番Firebaseに接続
+const isVercel = import.meta.env.VERCEL === '1' || import.meta.env.VERCEL === 'true'
+const isDevelopment = import.meta.env.DEV && !isVercel
+
+// テスト環境かどうかを判定
+const isTest = import.meta.env.MODE === 'test' || typeof (import.meta as any).vitest !== 'undefined'
+
+// エミュレーター接続済みかどうかを追跡するフラグ
+let emulatorConnected = false
+
+if (isDevelopment && !isTest) {
+  // Emulatorへの接続は一度だけ実行
+  if (!emulatorConnected) {
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true })
+    console.log('🔧 Connected to Auth Emulator')
+
+    connectFirestoreEmulator(db, 'localhost', 8080)
+    console.log('🔧 Connected to Firestore Emulator')
+
+    emulatorConnected = true
+  }
+
+  console.log('🚀 Running in LOCAL mode with Firebase Emulators')
+} else if (!isTest) {
+  console.log('☁️  Running in PRODUCTION mode with Firebase')
+}
