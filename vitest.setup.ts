@@ -1,6 +1,19 @@
 // vitest.setup.ts
 // Global test setup and polyfills
 import { vi } from 'vitest'
+import { config } from '@vue/test-utils'
+import { createVuetify } from 'vuetify'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+// Vuetifyのグローバル設定
+const vuetify = createVuetify({
+  components,
+  directives,
+})
+
+// Vue Test Utilsのグローバルプラグイン設定
+config.global.plugins = [vuetify]
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
