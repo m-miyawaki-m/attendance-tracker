@@ -348,7 +348,7 @@ describe('authFirebase Store', () => {
   })
 
   describe('エッジケース', () => {
-    it('ユーザードキュメントが存在しない場合', async () => {
+    it('AF-022: ユーザードキュメントが存在しない場合', async () => {
       const mockFirebaseUser = { uid: 'test-uid-123' }
       mockSignInWithEmailAndPassword.mockResolvedValue({ user: mockFirebaseUser })
       mockDoc.mockReturnValue('user-doc-ref')
@@ -365,7 +365,7 @@ describe('authFirebase Store', () => {
       expect(store.user).toBeNull()
     })
 
-    it('Firestoreからのデータ取得エラー', async () => {
+    it('AF-023: Firestoreからのデータ取得エラー', async () => {
       const mockFirebaseUser = { uid: 'test-uid-123' }
       mockSignInWithEmailAndPassword.mockResolvedValue({ user: mockFirebaseUser })
       mockDoc.mockReturnValue('user-doc-ref')
@@ -379,7 +379,7 @@ describe('authFirebase Store', () => {
       expect(store.user).toBeNull()
     })
 
-    it('ログアウト時のエラーハンドリング', async () => {
+    it('AF-024: ログアウト時のエラーハンドリング', async () => {
       mockSignOut.mockRejectedValue(new Error('Sign out error'))
 
       const store = useAuthFirebaseStore()
@@ -387,7 +387,7 @@ describe('authFirebase Store', () => {
       await expect(store.logout()).resolves.not.toThrow()
     })
 
-    it('checkAuth関数は互換性のために存在', () => {
+    it('AF-025: checkAuth関数は互換性のために存在', () => {
       const store = useAuthFirebaseStore()
       // checkAuthが存在し、呼び出してもエラーにならないことを確認
       expect(() => store.checkAuth()).not.toThrow()

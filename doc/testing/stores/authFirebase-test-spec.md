@@ -5,6 +5,7 @@
 | 項目 | 内容 |
 |:---|:---|
 | 対象ファイル | `src/stores/authFirebase.ts` |
+| テストファイル | `tests/unit/stores/authFirebase.spec.ts` |
 | 関連設計書 | [基本設計書 3.1](../../design/03-basic/03-basic-design.md#31-auth-store-authfirebasets) |
 | 設計書記載 | Auth Store（ログイン/ログアウト処理、ユーザーデータ取得、認証状態管理） |
 
@@ -22,59 +23,62 @@
 
 ### 4.1. State初期値
 
-| テストNo. | テストケース | State | 期待する結果 |
+| テストID | テストケース | State | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 1-1 | user初期値 | `user` | `null` |
-| 1-2 | firebaseUser初期値 | `firebaseUser` | `null` |
-| 1-3 | isAuthenticated初期値 | `isAuthenticated` | `false` |
-| 1-4 | loading初期値 | `loading` | `true` |
+| AF-001 | user初期値、isAuthenticated初期値、loading初期値 | `user`, `firebaseUser`, `isAuthenticated`, `loading` | `null`, `null`, `false`, `true` |
+| AF-002 | 初期状態のgetters | `isAdmin`, `userName`, `userEmail`, `userId` | `false`, `''`, `''`, `''` |
 
-### 4.2. Getters
+### 4.2. login アクション
 
-| テストNo. | テストケース | State | 期待する結果 |
+| テストID | テストケース | Firebase応答 | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 2-1 | isAdmin（管理者） | `user.role: 'admin'` | `true` |
-| 2-2 | isAdmin（一般ユーザー） | `user.role: 'employee'` | `false` |
-| 2-3 | isAdmin（未ログイン） | `user: null` | `false` |
-| 2-4 | userName | `user.name: '山田太郎'` | `'山田太郎'` |
-| 2-5 | userName（未ログイン） | `user: null` | `''` |
-| 2-6 | userEmail | `user.email: 'test@example.com'` | `'test@example.com'` |
-| 2-7 | userId | `user.id: 'user001'` | `'user001'` |
+| AF-003 | メール/パスワードでログイン成功 | `signInWithEmailAndPassword`成功 | ・`true`を返す。<br>・`isAuthenticated`がtrueになる。 |
+| AF-004 | ログイン失敗（無効なメール） | `signInWithEmailAndPassword`が例外 | ・`false`を返す。<br>・`isAuthenticated`がfalseのまま。 |
+| AF-005 | ログイン失敗（無効なパスワード） | `signInWithEmailAndPassword`が例外 | ・`false`を返す。<br>・`isAuthenticated`がfalseのまま。 |
+| AF-006 | ログイン後のユーザー情報取得 | ログイン成功、`getDoc`成功 | ・`user`にユーザーデータが設定される。 |
 
-### 4.3. login アクション
+### 4.3. logout アクション
 
-| テストNo. | テストケース | Firebase応答 | 期待する結果 |
+| テストID | テストケース | Firebase応答 | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 3-1 | ログイン成功 | `signInWithEmailAndPassword`成功 | ・`true`を返す。<br>・`firebaseUser`が設定される。<br>・`fetchUserData`が呼び出される。<br>・`isAuthenticated`がtrueになる。 |
-| 3-2 | ログイン失敗 | `signInWithEmailAndPassword`が例外 | ・`false`を返す。<br>・`isAuthenticated`がfalseのまま。<br>・loggerにエラーが記録される。 |
-| 3-3 | ログ出力 | - | debug/infoログが適切に出力される。 |
+| AF-007 | ログアウト成功 | `signOut`成功 | ・`user`がnullになる。<br>・`firebaseUser`がnullになる。<br>・`isAuthenticated`がfalseになる。 |
+| AF-008 | ログアウト後のクリーンアップ | `signOut`成功 | ・gettersも初期状態に戻る（`userName`が空文字など）。 |
 
-### 4.4. logout アクション
+### 4.4. 認証状態監視（initAuthListener）
 
-| テストNo. | テストケース | Firebase応答 | 期待する結果 |
+| テストID | テストケース | 認証状態 | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 4-1 | ログアウト成功 | `signOut`成功 | ・`user`がnullになる。<br>・`firebaseUser`がnullになる。<br>・`isAuthenticated`がfalseになる。<br>・loggerに記録される。 |
-| 4-2 | ログアウト失敗 | `signOut`が例外 | ・loggerにエラーが記録される。 |
+| AF-009 | ログイン検知（onAuthStateChanged） | `firebaseUserData`がnullでない | `onAuthStateChanged`が呼び出される。 |
+| AF-010 | ログアウト検知（onAuthStateChanged with null） | `firebaseUserData`がnull | ・`isAuthenticated`がfalseになる。<br>・`loading`がfalseになる。 |
+| AF-011 | 認証状態変更時にユーザーデータ取得 | 認証状態変更 | ・`isAuthenticated`がtrueになる。<br>・`getDoc`が呼び出される。 |
 
-### 4.5. fetchUserData アクション
+### 4.5. ユーザー情報（Getters）
 
-| テストNo. | テストケース | Firestore応答 | 期待する結果 |
+| テストID | テストケース | State | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 5-1 | ユーザーデータ取得成功 | `getDoc`でドキュメントあり | ・`user`にユーザーデータが設定される。<br>・全フィールド（id, name, email, role, department, position, employeeNumber, managerId, createdAt, updatedAt）が正しくマッピングされる。 |
-| 5-2 | ユーザードキュメントなし | `getDoc`で`exists()`がfalse | ・`user`がnullのまま。<br>・loggerに警告が記録される。 |
-| 5-3 | Firestoreエラー | `getDoc`が例外 | ・loggerにエラーが記録される。 |
-| 5-4 | Timestamp変換 | `createdAt`/`updatedAt`がTimestamp | `toDate()`でDateオブジェクトに変換される。 |
+| AF-012 | ユーザー名取得 | ログイン後 | `userName`に正しい値が設定される。 |
+| AF-013 | メールアドレス取得 | ログイン後 | `userEmail`に正しい値が設定される。 |
+| AF-014 | UID取得 | ログイン後 | `userId`に正しい値が設定される。 |
+| AF-015 | ロール取得 | ログイン後 | `user.role`に正しい値が設定される。 |
 
-### 4.6. initAuthListener アクション
+### 4.6. 管理者権限
 
-| テストNo. | テストケース | 認証状態 | 期待する結果 |
+| テストID | テストケース | State | 期待する結果 |
 | :--- | :--- | :--- | :--- |
-| 6-1 | リスナー登録 | - | `onAuthStateChanged`が呼び出される。 |
-| 6-2 | ログイン状態検出 | `firebaseUserData`がnullでない | ・`loading`がtrueになる。<br>・`fetchUserData`が呼び出される。<br>・`isAuthenticated`がtrueになる。<br>・`loading`がfalseになる。 |
-| 6-3 | 未ログイン状態検出 | `firebaseUserData`がnull | ・`user`がnullになる。<br>・`isAuthenticated`がfalseになる。<br>・`loading`がfalseになる。 |
+| AF-016 | 管理者判定（true） | `user.role: 'admin'` | `isAdmin`が`true`を返す。 |
+| AF-017 | 管理者判定（false） | `user.role: 'employee'` | `isAdmin`が`false`を返す。 |
 
-### 4.7. checkAuth アクション
+### 4.7. エッジケース
 
-| テストNo. | テストケース | 期待する結果 |
-| :--- | :--- | :--- |
-| 7-1 | 互換性メソッド | loggerにdebugログが出力される（実際の処理はinitAuthListenerで行われる）。 |
+| テストID | テストケース | 条件 | 期待する結果 |
+| :--- | :--- | :--- | :--- |
+| AF-022 | ユーザードキュメントが存在しない場合 | `getDoc`で`exists()`がfalse | 認証成功するが`user`はnull。 |
+| AF-023 | Firestoreからのデータ取得エラー | `getDoc`が例外 | 認証成功するが`user`はnull。 |
+| AF-024 | ログアウト時のエラーハンドリング | `signOut`が例外 | エラーがスローされない。 |
+| AF-025 | checkAuth関数は互換性のために存在 | - | 呼び出してもエラーにならない。 |
+
+## 5. 備考
+
+- テストID（AF-001〜AF-025）はチェックリスト（PHASE1_TEST_CHECKLIST.md）と統一
+- 一部のテストケースは統合して実装（例: AF-001でState初期値とisAuthenticated初期値を同時にテスト）
+- 実装テスト数: 21テスト関数
