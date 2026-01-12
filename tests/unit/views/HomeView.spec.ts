@@ -2,23 +2,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import HomeView from '@/views/HomeView.vue'
 import { useAttendanceFirebaseStore } from '@/stores/attendanceFirebase'
 import { useAuthFirebaseStore } from '@/stores/authFirebase'
 
-// Vuetify設定
-const vuetify = createVuetify({
-  components,
-  directives,
-})
-
-// グローバルマウントオプション
+// グローバルマウントオプション（Vuetifyはvitest.setup.tsでグローバル設定済み）
 const globalMountOptions = {
   global: {
-    plugins: [vuetify],
     stubs: {
       'v-overlay': true,
       'v-progress-circular': true,

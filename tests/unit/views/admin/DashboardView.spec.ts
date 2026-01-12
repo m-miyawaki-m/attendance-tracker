@@ -2,9 +2,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import DashboardView from '@/views/admin/DashboardView.vue'
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import type { User, Attendance } from '@/types'
@@ -14,12 +11,6 @@ const mockCollection = collection as Mock
 const mockGetDocs = getDocs as Mock
 const mockQuery = query as Mock
 const mockWhere = where as Mock
-
-// Vuetify設定
-const vuetify = createVuetify({
-  components,
-  directives,
-})
 
 // ApexChartsモック
 vi.mock('vue3-apexcharts', () => ({
@@ -175,11 +166,10 @@ describe('DashboardView.vue', () => {
     })
   }
 
-  // ヘルパー関数：コンポーネントのマウント
+  // ヘルパー関数：コンポーネントのマウント（Vuetifyはvitest.setup.tsでグローバル設定済み）
   const mountComponent = () => {
     return mount(DashboardView, {
       global: {
-        plugins: [vuetify, createPinia()],
         stubs: {
           apexchart: {
             name: 'apexchart',
