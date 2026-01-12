@@ -42,21 +42,65 @@ attendance-tracker/
 
 ## 2. 単体テスト仕様
 
-### 2.1 テストカテゴリ
+### 2.1 テスト実装状況サマリー
+
+#### 現在のテスト状況
+- **実装済み**: 66テスト（6ファイル）
+- **コンポーネントカバレッジ**: 3/12（25%）
+- **ストアカバレッジ**: 1/6（17%）※auth.tsのみ
+
+#### テストカテゴリ別状況
 
 | カテゴリ | 対象 | テスト数 | 状態 |
 |----------|------|----------|------|
 | データ層 | mockData | 18 | 完了 |
-| 認証ストア | auth.ts | 9 | 完了 |
+| 認証ストア | auth.ts（モック版） | 9 | 完了 |
 | ログユーティリティ | logger.ts | 17 | 完了 |
 | Appコンポーネント | App.vue | 4 | 完了 |
 | レイアウト | MainLayout.vue | 17 | 完了 |
-| ログインビュー | LoginView.vue | 1 | 完了 |
+| ログインビュー | LoginView.vue | 1 | 最小限 |
 | **合計** | | **66** | |
 
-### 2.2 データ層テスト（mockData.spec.ts）
+### 2.2 コンポーネントテスト状況
 
-#### 2.2.1 mockUsers
+#### 2.2.1 全コンポーネント一覧
+
+| コンポーネント | パス | テスト | 状態 | 優先度 |
+|----------------|------|--------|------|--------|
+| App.vue | src/ | あり（4件） | 完了 | - |
+| MainLayout.vue | src/layouts/ | あり（17件） | 完了 | - |
+| LoginView.vue | src/views/ | あり（1件） | 最小限 | 中 |
+| HomeView.vue | src/views/ | **なし** | 未実装 | 高 |
+| AttendanceListView.vue | src/views/ | **なし** | 未実装 | 中 |
+| DashboardView.vue | src/views/admin/ | **なし** | 未実装 | 高 |
+| EmployeeListView.vue | src/views/admin/ | **なし** | 未実装 | 中 |
+| TeamView.vue | src/views/admin/ | **なし** | 未実装 | 中 |
+| AttendanceEditView.vue | src/views/admin/ | **なし** | 未実装 | 低 |
+| AdminAttendanceList.vue | src/components/attendance/ | **なし** | 未実装 | 中 |
+| UserAttendanceHistory.vue | src/components/attendance/ | **なし** | 未実装 | 中 |
+| DevLogViewer.vue | src/components/dev/ | **なし** | 未実装 | 低 |
+
+### 2.3 ストアテスト状況
+
+| ストア | パス | テスト | 状態 | 優先度 |
+|--------|------|--------|------|--------|
+| auth.ts | src/stores/ | あり（9件） | 完了（モック版） | - |
+| authFirebase.ts | src/stores/ | **なし** | 未実装 | 高 |
+| attendanceFirebase.ts | src/stores/ | **なし** | 未実装 | 高 |
+| userStore.ts | src/stores/ | **なし** | 未実装 | 中 |
+| adminAttendanceStore.ts | src/stores/ | **なし** | 未実装 | 中 |
+| counter.ts | src/stores/ | **なし** | 未実装 | 低（未使用） |
+
+### 2.4 ユーティリティ・Composableテスト状況
+
+| ファイル | パス | テスト | 状態 | 優先度 |
+|----------|------|--------|------|--------|
+| logger.ts | src/utils/ | あり（17件） | 完了 | - |
+| useLogger.ts | src/composables/ | **なし** | 未実装 | 中 |
+
+### 2.5 データ層テスト（mockData.spec.ts）
+
+#### 2.5.1 mockUsers
 | テストNo | テストケース | 期待結果 |
 |----------|--------------|----------|
 | DATA-001 | ユーザー数の確認 | 21名のユーザーが存在 |
@@ -64,7 +108,7 @@ attendance-tracker/
 | DATA-003 | 一般従業員の存在確認 | employee ロールが1名以上 |
 | DATA-004 | 必須フィールド確認 | id, name, email, role, department が全員に存在 |
 
-#### 2.2.2 mockAttendances
+#### 2.5.2 mockAttendances
 | テストNo | テストケース | 期待結果 |
 |----------|--------------|----------|
 | DATA-005 | 打刻データの存在 | 1件以上存在 |
@@ -72,7 +116,7 @@ attendance-tracker/
 | DATA-007 | 位置情報形式 | latitude, longitude, accuracy が数値 |
 | DATA-008 | 退勤データ整合性 | checkOut がある場合、workingMinutes > 0 |
 
-#### 2.2.3 mockChartData
+#### 2.5.3 mockChartData
 | テストNo | テストケース | 期待結果 |
 |----------|--------------|----------|
 | DATA-009 | 出勤率データ | 6ヶ月分のデータ存在 |
@@ -80,7 +124,7 @@ attendance-tracker/
 | DATA-011 | 遅刻・早退データ | 3ヶ月分、2シリーズ |
 | DATA-012 | 部署別状況データ | 2ラベル、2シリーズ |
 
-#### 2.2.4 その他
+#### 2.5.4 その他
 | テストNo | テストケース | 期待結果 |
 |----------|--------------|----------|
 | DATA-013 | サマリー型チェック | 数値型であること |
@@ -90,7 +134,7 @@ attendance-tracker/
 | DATA-017 | 部署リスト存在 | 1件以上存在 |
 | DATA-018 | 部署型チェック | 全て文字列 |
 
-### 2.3 認証ストアテスト（auth.spec.ts）
+### 2.6 認証ストアテスト（auth.spec.ts）
 
 | テストNo | テストケース | 前提条件 | 操作 | 期待結果 |
 |----------|--------------|----------|------|----------|
@@ -104,9 +148,9 @@ attendance-tracker/
 | AUTH-008 | computed値計算 | ログイン済み | 各computed参照 | 正しい値が返る |
 | AUTH-009 | rememberMeオプション | なし | rememberMe=true でlogin | LocalStorageにremember保存 |
 
-### 2.4 ログユーティリティテスト（logger.spec.ts）
+### 2.7 ログユーティリティテスト（logger.spec.ts）
 
-#### 2.4.1 ログ出力
+#### 2.7.1 ログ出力
 | テストNo | テストケース | 操作 | 期待結果 |
 |----------|--------------|------|----------|
 | LOG-001 | debugログ記録 | logger.debug() | level=debug で記録 |
@@ -117,14 +161,14 @@ attendance-tracker/
 | LOG-006 | データなしログ | logger.info('msg') | data=undefined |
 | LOG-007 | 複数ログ順序 | 3回ログ出力 | 出力順に配列格納 |
 
-#### 2.4.2 ログ操作
+#### 2.7.2 ログ操作
 | テストNo | テストケース | 操作 | 期待結果 |
 |----------|--------------|------|----------|
 | LOG-008 | ログクリア | clearLogs() | 件数0になる |
 | LOG-009 | 件数取得 | getLogCount() | 正しい件数 |
 | LOG-010 | サイズ取得 | getLogSize() | サイズ増加確認 |
 
-#### 2.4.3 フォーマット・リスナー
+#### 2.7.3 フォーマット・リスナー
 | テストNo | テストケース | 操作 | 期待結果 |
 |----------|--------------|------|----------|
 | LOG-011 | テキスト形式化 | formatLogsAsText() | [timestamp] [LEVEL] message 形式 |
@@ -132,16 +176,16 @@ attendance-tracker/
 | LOG-013 | 購読解除 | unsubscribe() | 以後コールバック無し |
 | LOG-014 | 複数リスナー | 2つ登録 | 両方に通知 |
 
-#### 2.4.4 LocalStorage
+#### 2.7.4 LocalStorage
 | テストNo | テストケース | 操作 | 期待結果 |
 |----------|--------------|------|----------|
 | LOG-015 | 保存確認 | logger.info() | LocalStorageに保存 |
 | LOG-016 | 復元確認 | getLogs() | 既存ログ取得 |
 | LOG-017 | 不正JSON対応 | 不正JSON設定後getLogs() | 空配列返却 |
 
-### 2.5 コンポーネントテスト
+### 2.8 コンポーネントテスト詳細
 
-#### 2.5.1 App.vue（App.spec.ts）
+#### 2.8.1 App.vue（App.spec.ts）
 | テストNo | テストケース | 条件 | 期待結果 |
 |----------|--------------|------|----------|
 | APP-001 | レイアウトnone | meta.layout='none' | MainLayout非表示 |
@@ -149,7 +193,7 @@ attendance-tracker/
 | APP-003 | 一般ユーザーレイアウト | role=user, layout=default | showTabs=true |
 | APP-004 | デフォルトレイアウト | metaなし | MainLayout表示 |
 
-#### 2.5.2 MainLayout.vue（MainLayout.spec.ts）
+#### 2.8.2 MainLayout.vue（MainLayout.spec.ts）
 ※ 詳細は [MainLayout-test-spec.md](./MainLayout-test-spec.md) 参照
 
 | カテゴリ | テスト数 | 概要 |
@@ -160,7 +204,7 @@ attendance-tracker/
 | インタラクション | 3 | ログアウト、サイドバー開閉 |
 | 内部ロジック | 2 | フッター年表示、スナックバー |
 
-#### 2.5.3 LoginView.vue（LoginView.spec.ts）
+#### 2.8.3 LoginView.vue（LoginView.spec.ts）
 | テストNo | テストケース | 操作 | 期待結果 |
 |----------|--------------|------|----------|
 | LOGIN-001 | 正常レンダリング | マウント | タイトル・入力欄表示 |
@@ -325,25 +369,66 @@ GitHub Actionsで自動実行:
 
 ## 7. 今後の課題
 
-### 7.1 テストカバレッジ拡充
+### 7.1 テストカバレッジ拡充（ストア）
 
-| 優先度 | 対象 | 状態 |
-|--------|------|------|
-| 高 | authFirebase.ts | 未実装 |
-| 高 | attendanceFirebase.ts | 未実装 |
-| 中 | userStore.ts | 未実装 |
-| 中 | adminAttendanceStore.ts | 未実装 |
-| 中 | useLogger.ts | 未実装 |
-| 低 | 各Viewコンポーネント | 一部実装 |
+| 優先度 | 対象 | 状態 | 理由 |
+|--------|------|------|------|
+| 高 | authFirebase.ts | 未実装 | 認証の中核。Firebase連携のモックが必要 |
+| 高 | attendanceFirebase.ts | 未実装 | 打刻機能の中核。CRUD操作のテスト必須 |
+| 中 | userStore.ts | 未実装 | ユーザー一覧取得のテスト |
+| 中 | adminAttendanceStore.ts | 未実装 | 管理者機能のテスト |
+| 低 | counter.ts | 未実装 | 未使用のため優先度低 |
 
-### 7.2 結合テスト追加
+### 7.2 テストカバレッジ拡充（コンポーネント）
+
+| 優先度 | 対象 | 状態 | 必要なテスト内容 |
+|--------|------|------|-----------------|
+| 高 | HomeView.vue | 未実装 | 打刻ボタン表示、時刻表示、状態更新 |
+| 高 | DashboardView.vue | 未実装 | グラフ表示、サマリー表示 |
+| 中 | LoginView.vue | 最小限 | ログイン処理、バリデーション、エラー表示 |
+| 中 | AttendanceListView.vue | 未実装 | 月次勤怠一覧、フィルタリング |
+| 中 | TeamView.vue | 未実装 | 主任選択、チーム一覧表示 |
+| 中 | EmployeeListView.vue | 未実装 | 従業員一覧、ステータス表示 |
+| 中 | AdminAttendanceList.vue | 未実装 | 勤怠データテーブル |
+| 中 | UserAttendanceHistory.vue | 未実装 | 履歴表示 |
+| 低 | AttendanceEditView.vue | 未実装 | 編集フォーム |
+| 低 | DevLogViewer.vue | 未実装 | 開発用のため優先度低 |
+
+### 7.3 テストカバレッジ拡充（ユーティリティ）
+
+| 優先度 | 対象 | 状態 | 必要なテスト内容 |
+|--------|------|------|-----------------|
+| 中 | useLogger.ts | 未実装 | リアクティブ更新、フィルタリング |
+
+### 7.4 結合テスト追加
 
 - ストア間連携テスト
 - Firebase Emulator連携テスト
 - ルーティングテスト
 
-### 7.3 E2Eテスト追加
+### 7.5 E2Eテスト追加
 
 - Playwright導入
 - 主要フロー自動テスト
 - CI/CD連携
+
+---
+
+## 8. テスト実装ロードマップ
+
+### Phase 1: 高優先度（推奨）
+1. HomeView.vue - 打刻機能のUIテスト
+2. authFirebase.ts - Firebase認証のモックテスト
+3. attendanceFirebase.ts - 勤怠CRUDのモックテスト
+4. DashboardView.vue - 管理者ダッシュボードのテスト
+
+### Phase 2: 中優先度
+1. LoginView.vue - テスト拡充（現在1件のみ）
+2. userStore.ts - ユーザー取得のテスト
+3. TeamView.vue / EmployeeListView.vue - 一覧表示テスト
+4. useLogger.ts - Composableのテスト
+
+### Phase 3: 結合・E2E
+1. ストア間連携テスト
+2. Playwright導入・設定
+3. 主要フロー（ログイン→打刻→確認）のE2Eテスト
