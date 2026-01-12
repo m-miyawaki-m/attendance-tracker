@@ -249,8 +249,8 @@ npm run seed:emulator
 
 - [Firebase Emulator セットアップ](./FIREBASE_EMULATOR_SETUP.md)
 - [設計ドキュメント](../design/README.md)
-- [要件定義書](../design/specifications/01-requirements.md)
-- [システム概要設計書](../design/specifications/02-overview.md)
-- [基本設計書](../design/specifications/03-basic-design.md)
-- [詳細設計書](../design/specifications/04-detailed-design.md)
-- [コンポーネントツリー](../design/diagrams/component-tree.md)
+- [要件定義書](../design/01-requirements/01-requirements.md)
+- [システム概要設計書](../design/02-overview/02-overview.md)
+- [基本設計書](../design/03-basic/03-basic-design.md)
+- [詳細設計書](../design/04-detailed/04-detailed-design.md)
+- [コンポーネントツリー](../design/03-basic/component-tree.md)

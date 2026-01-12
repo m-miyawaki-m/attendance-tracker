@@ -444,10 +444,10 @@ npm run upload:to-production      # Emulatorデータを本番へ
 
 ## 8. 関連ドキュメント
 
-- [要件定義書](./01-requirements.md)
-- [システム概要設計書](./02-overview.md)
-- [基本設計書](./03-basic-design.md)
-- [コンポーネントツリー](../diagrams/component-tree.md)
-- [画面遷移図](../diagrams/screen-transition/flowchart.md)
+- [要件定義書](../01-requirements/01-requirements.md)
+- [システム概要設計書](../02-overview/02-overview.md)
+- [基本設計書](../03-basic/03-basic-design.md)
+- [コンポーネントツリー](../03-basic/component-tree.md)
+- [画面遷移図](../03-basic/screen-transition/flowchart.md)
 - [開発フロー](../../development/DEVELOPMENT_FLOW.md)
 - [Firebase Emulatorセットアップ](../../development/FIREBASE_EMULATOR_SETUP.md)

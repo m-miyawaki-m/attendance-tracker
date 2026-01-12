@@ -252,8 +252,8 @@ firestore-root/
 
 ## 6. 関連ドキュメント
 
-- [要件定義書](./01-requirements.md)
-- [基本設計書](./03-basic-design.md)
-- [詳細設計書](./04-detailed-design.md)
-- [コンポーネントツリー](../diagrams/component-tree.md)
-- [画面遷移図](../diagrams/screen-transition/flowchart.md)
+- [要件定義書](../01-requirements/01-requirements.md)
+- [基本設計書](../03-basic/03-basic-design.md)
+- [詳細設計書](../04-detailed/04-detailed-design.md)
+- [コンポーネントツリー](../03-basic/component-tree.md)
+- [画面遷移図](../03-basic/screen-transition/flowchart.md)

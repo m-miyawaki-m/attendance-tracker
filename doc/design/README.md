@@ -6,33 +6,45 @@
 
 ```
 design/
-├── specifications/           # 設計書
-│   ├── 01-requirements.md    # 要件定義書
-│   ├── 02-overview.md        # システム概要設計書
-│   ├── 03-basic-design.md    # 基本設計書
-│   └── 04-detailed-design.md # 詳細設計書
-└── diagrams/                 # 図表・ビジュアル資料
-    ├── component-tree.md     # コンポーネントツリー
-    └── screen-transition/    # 画面遷移図
-        ├── flowchart.md
-        └── flowchart.puml
+├── 01-requirements/              # 要件定義
+│   └── 01-requirements.md
+├── 02-overview/                  # システム概要設計
+│   └── 02-overview.md
+├── 03-basic/                     # 基本設計
+│   ├── 03-basic-design.md        # 基本設計書
+│   ├── component-tree.md         # コンポーネントツリー
+│   └── screen-transition/        # 画面遷移図
+│       ├── flowchart.md
+│       └── flowchart.puml
+└── 04-detailed/                  # 詳細設計
+    └── 04-detailed-design.md
 ```
 
-## 設計書 (specifications/)
+## 01. 要件定義
 
 | ドキュメント | 内容 |
 |-------------|------|
-| [01-requirements.md](./specifications/01-requirements.md) | システム目的、ユーザー種別、機能要件、非機能要件 |
-| [02-overview.md](./specifications/02-overview.md) | 技術スタック、アーキテクチャ、データモデル、Firestore設計 |
-| [03-basic-design.md](./specifications/03-basic-design.md) | 画面設計、ルーティング、状態管理、UI/UX設計 |
-| [04-detailed-design.md](./specifications/04-detailed-design.md) | ユーティリティ関数、計算ロジック、グラフ設定、セキュリティ、テスト |
+| [01-requirements.md](./01-requirements/01-requirements.md) | システム目的、ユーザー種別、機能要件、非機能要件 |
 
-## 図表 (diagrams/)
+## 02. システム概要設計
 
 | ドキュメント | 内容 |
 |-------------|------|
-| [component-tree.md](./diagrams/component-tree.md) | Vueコンポーネントの階層構造 |
-| [screen-transition/](./diagrams/screen-transition/) | 画面遷移図（PlantUML） |
+| [02-overview.md](./02-overview/02-overview.md) | 技術スタック、アーキテクチャ、データモデル、Firestore設計 |
+
+## 03. 基本設計
+
+| ドキュメント | 内容 |
+|-------------|------|
+| [03-basic-design.md](./03-basic/03-basic-design.md) | 画面設計、ルーティング、状態管理、UI/UX設計 |
+| [component-tree.md](./03-basic/component-tree.md) | Vueコンポーネントの階層構造 |
+| [screen-transition/](./03-basic/screen-transition/) | 画面遷移図（PlantUML） |
+
+## 04. 詳細設計
+
+| ドキュメント | 内容 |
+|-------------|------|
+| [04-detailed-design.md](./04-detailed/04-detailed-design.md) | ユーティリティ関数、計算ロジック、グラフ設定、セキュリティ、テスト |
 
 ## 関連ドキュメント
 

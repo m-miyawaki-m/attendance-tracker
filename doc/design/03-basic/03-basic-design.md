@@ -335,8 +335,8 @@ interface AttendanceState {
 
 ## 5. 関連ドキュメント
 
-- [要件定義書](./01-requirements.md)
-- [システム概要設計書](./02-overview.md)
-- [詳細設計書](./04-detailed-design.md)
-- [コンポーネントツリー](../diagrams/component-tree.md)
-- [画面遷移図](../diagrams/screen-transition/flowchart.md)
+- [要件定義書](../01-requirements/01-requirements.md)
+- [システム概要設計書](../02-overview/02-overview.md)
+- [詳細設計書](../04-detailed/04-detailed-design.md)
+- [コンポーネントツリー](./component-tree.md)
+- [画面遷移図](./screen-transition/flowchart.md)
