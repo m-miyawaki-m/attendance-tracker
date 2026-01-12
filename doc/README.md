@@ -147,23 +147,52 @@ attendance-tracker/
 
 ### 未実装（拡張予定）
 
-- 🔲 Firebase統合
-- 🔲 実際の認証機能
+- ✅ Firebase統合（Auth + Firestore）
+- ✅ 実際の認証機能
 - 🔲 リアルタイムデータ同期
 - 🔲 E2Eテスト
 - 🔲 PWA化
 
+## 開発環境
+
+詳細は [開発フロー](./DEVELOPMENT_FLOW.md) を参照してください。
+
+### ブランチ戦略
+
+| ブランチ | 環境 | Firebase |
+|---------|------|----------|
+| `main` | 本番 (Vercel Production) | 本番Firebase |
+| `develop` | ステージング (Vercel Preview) | 本番Firebase |
+| `feature/*` | ローカルのみ | Firebase Emulator |
+
+### ローカル開発の始め方
+
+```bash
+# 1. Emulator起動
+npm run firebase:emulators
+
+# 2. テストデータをシード
+npm run seed:emulator
+
+# 3. 開発サーバー起動
+npm run dev
+```
+
+詳細は [Firebase Emulator セットアップ](./FIREBASE_EMULATOR_SETUP.md) を参照してください。
+
 ## テストアカウント
 
-### 一般従業員
-- **メールアドレス**: yamada@example.com
-- **パスワード**: password
-- **権限**: 自分の勤怠データの閲覧・打刻
+### ローカル開発（Firebase Emulator）
 
-### 管理者
-- **メールアドレス**: admin@example.com
-- **パスワード**: password
-- **権限**: 全従業員データの閲覧・編集、ダッシュボード
+| メールアドレス | パスワード | 役割 |
+|---------------|-----------|------|
+| admin@example.com | adminadmin | 管理者 |
+| user01@example.com | user01 | 一般ユーザー |
+| user02~20@example.com | password123 | 一般ユーザー |
+
+### 本番/ステージング
+
+本番Firebaseに登録されているアカウントを使用してください。
 
 ## 画面一覧
 

@@ -156,6 +156,42 @@ npm run firebase:emulators:export
 npm run firebase:emulators:import
 ```
 
+## データ移行
+
+### 本番データをEmulatorにインポート
+
+本番環境のデータを使ってローカル開発する場合:
+
+```bash
+# 1. 本番Firebaseからデータをエクスポート（service-account.json必要）
+npm run export:production
+
+# 2. Emulator起動
+npm run firebase:emulators
+
+# 3. エクスポートしたデータをEmulatorにインポート
+npm run seed:emulator:from-export
+```
+
+### EmulatorデータをEmulatorにアップロード
+
+ローカルで作成したデータを本番環境に反映する場合:
+
+```bash
+# 1. Emulatorからデータをエクスポート
+npm run export:emulator
+
+# 2. 本番にアップロード（2つのモードから選択）
+
+# 初期化モード: 本番データを全削除してアップロード
+npm run upload:to-production -- --init
+
+# マージモード: 既存データを残して追加
+npm run upload:to-production -- --merge
+```
+
+⚠️ **注意**: パスワードはエクスポート/インポートされません。ユーザーはパスワードリセットが必要です。
+
 ## 本番環境への影響
 
 このセットアップでは、以下のロジックで接続先が決定されます:
@@ -172,6 +208,10 @@ if (isDevelopment) {
 ```
 
 Vercelでビルドする際、環境変数`VERCEL`が自動的に設定されるため、本番Firebaseに接続されます。
+
+## 関連ドキュメント
+
+- [開発フロー](./DEVELOPMENT_FLOW.md) - ブランチ戦略と開発手順
 
 ## 参考リンク
 
