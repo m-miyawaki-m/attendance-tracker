@@ -48,3 +48,4 @@ ui-debug.log
 firestore-debug.log
 database-debug.log
 pubsub-debug.log
+emulator-seed-data.json
