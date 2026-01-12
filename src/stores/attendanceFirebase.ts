@@ -11,10 +11,10 @@ import {
   Timestamp,
   updateDoc,
   doc,
-  getDoc,
 } from 'firebase/firestore'
 import { db } from '@/firebase/config'
 import type { Attendance, Location } from '@/types'
+import { logger } from '@/utils/logger'
 
 export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () => {
   // State
@@ -28,6 +28,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     userId: string,
     location: Location,
   ): Promise<{ success: boolean; attendanceId?: string; error?: string }> {
+    logger.debug('clockIn() 開始', { userId, location })
     try {
       loading.value = true
 
@@ -37,6 +38,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
       // 今日の出勤記録がすでにあるかチェック
       const existingAttendance = await getTodayAttendance(userId)
       if (existingAttendance) {
+        logger.warn('出勤打刻失敗: すでに本日の出勤記録あり', { userId, date: today })
         return {
           success: false,
           error: 'すでに本日の出勤打刻があります',
@@ -49,6 +51,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
       const totalMinutes = hours * 60 + minutes
       const status = totalMinutes > 9 * 60 ? 'late' : 'present'
 
+      logger.info('Firestoreに出勤記録を追加中...', { userId, date: today, status })
       // Firestoreに出勤記録を追加
       const docRef = await addDoc(collection(db, 'attendances'), {
         userId,
@@ -79,9 +82,11 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         updatedAt: now,
       }
 
+      logger.info('出勤打刻完了', { attendanceId: docRef.id, status })
+      logger.debug('clockIn() 終了')
       return { success: true, attendanceId: docRef.id }
     } catch (error) {
-      console.error('Clock in error:', error)
+      logger.error('出勤打刻エラー', { userId, error })
       return {
         success: false,
         error: error instanceof Error ? error.message : '出勤打刻に失敗しました',
@@ -95,11 +100,13 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     userId: string,
     location: Location,
   ): Promise<{ success: boolean; error?: string }> {
+    logger.debug('clockOut() 開始', { userId, location })
     try {
       loading.value = true
 
       const attendance = await getTodayAttendance(userId)
       if (!attendance) {
+        logger.warn('退勤打刻失敗: 出勤記録なし', { userId })
         return {
           success: false,
           error: '本日の出勤記録が見つかりません',
@@ -107,6 +114,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
       }
 
       if (attendance.checkOut) {
+        logger.warn('退勤打刻失敗: すでに退勤済み', { userId })
         return {
           success: false,
           error: 'すでに退勤打刻済みです',
@@ -128,6 +136,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         status = 'early_leave'
       }
 
+      logger.info('Firestoreの出勤記録を更新中...', { attendanceId: attendance.id, workingMinutes })
       // Firestoreの出勤記録を更新
       const attendanceRef = doc(db, 'attendances', attendance.id)
       await updateDoc(attendanceRef, {
@@ -147,9 +156,11 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         updatedAt: now,
       }
 
+      logger.info('退勤打刻完了', { workingMinutes, status })
+      logger.debug('clockOut() 終了')
       return { success: true }
     } catch (error) {
-      console.error('Clock out error:', error)
+      logger.error('退勤打刻エラー', { userId, error })
       return {
         success: false,
         error: error instanceof Error ? error.message : '退勤打刻に失敗しました',
@@ -160,6 +171,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
   }
 
   async function getTodayAttendance(userId: string): Promise<Attendance | null> {
+    logger.debug('getTodayAttendance() 開始', { userId })
     try {
       const today = new Date().toISOString().split('T')[0]
 
@@ -169,15 +181,19 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         where('date', '==', today),
       )
 
+      logger.info('Firestoreから本日の勤怠データを取得中...', { userId, date: today })
       const snapshot = await getDocs(q)
 
       if (snapshot.empty) {
+        logger.debug('getTodayAttendance() 終了 - 記録なし')
         return null
       }
 
       const docData = snapshot.docs[0]
       const data = docData.data()
 
+      logger.info('本日の勤怠データ取得完了', { attendanceId: docData.id })
+      logger.debug('getTodayAttendance() 終了')
       return {
         id: docData.id,
         userId: data.userId,
@@ -193,7 +209,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         updatedAt: data.updatedAt?.toDate(),
       }
     } catch (error) {
-      console.error('Error fetching today attendance:', error)
+      logger.error('本日の勤怠データ取得エラー', { userId, error })
       return null
     }
   }
@@ -203,6 +219,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     year: number,
     month: number,
   ): Promise<void> {
+    logger.debug('fetchMonthlyAttendances() 開始', { userId, year, month })
     try {
       loading.value = true
 
@@ -217,6 +234,7 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         orderBy('checkIn', 'desc'),
       )
 
+      logger.info('Firestoreから月間勤怠データを取得中...', { userId, year, month })
       const snapshot = await getDocs(q)
 
       attendances.value = snapshot.docs.map((docData) => {
@@ -236,15 +254,19 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
           updatedAt: data.updatedAt?.toDate(),
         }
       })
+      logger.info('月間勤怠データ取得完了', { count: attendances.value.length })
+      logger.debug('fetchMonthlyAttendances() 終了')
     } catch (error) {
-      console.error('Error fetching monthly attendances:', error)
+      logger.error('月間勤怠データ取得エラー', { userId, year, month, error })
     } finally {
       loading.value = false
     }
   }
 
   async function loadTodayAttendance(userId: string): Promise<void> {
+    logger.debug('loadTodayAttendance() 開始', { userId })
     todayAttendance.value = await getTodayAttendance(userId)
+    logger.debug('loadTodayAttendance() 終了')
   }
 
   async function fetchAttendancesByDateRange(
@@ -252,16 +274,15 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
     startDate: string,
     endDate: string,
   ): Promise<void> {
+    logger.debug('fetchAttendancesByDateRange() 開始', { userId, startDate, endDate })
     try {
       loading.value = true
 
       // userIdのみでクエリし、日付範囲はクライアント側でフィルタリング
       // これによりFirestoreのインデックスが不要になる
-      const q = query(
-        collection(db, 'attendances'),
-        where('userId', '==', userId),
-      )
+      const q = query(collection(db, 'attendances'), where('userId', '==', userId))
 
+      logger.info('Firestoreから勤怠データを取得中...', { userId })
       const snapshot = await getDocs(q)
 
       // 全データをマップ化（checkInが必須のため、欠けているレコードは除外）
@@ -269,7 +290,9 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         .filter((docData) => {
           const data = docData.data()
           if (!data.checkIn) {
-            console.warn(`Attendance record ${docData.id} is missing checkIn field, skipping`)
+            logger.warn('checkInフィールドが欠落しているレコードをスキップ', {
+              attendanceId: docData.id,
+            })
             return false
           }
           return true
@@ -300,9 +323,10 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
         .filter((att) => att.date >= startDate && att.date <= endDate)
         .sort((a, b) => b.date.localeCompare(a.date))
 
-      console.log(`Cached ${allUserAttendances.length} attendance records for user ${userId}`)
+      logger.info('勤怠データをキャッシュに保存', { userId, totalCount: allUserAttendances.length })
+      logger.debug('fetchAttendancesByDateRange() 終了')
     } catch (error) {
-      console.error('Error fetching attendances by date range:', error)
+      logger.error('日付範囲指定の勤怠データ取得エラー', { userId, startDate, endDate, error })
     } finally {
       loading.value = false
     }
@@ -347,11 +371,11 @@ export const useAttendanceFirebaseStore = defineStore('attendanceFirebase', () =
   function clearCache(userId?: string): void {
     if (userId) {
       attendancesByUser.value.delete(userId)
-      console.log(`Cleared attendance cache for user ${userId}`)
+      logger.info('勤怠キャッシュをクリア', { userId })
     } else {
       attendancesByUser.value.clear()
       attendances.value = []
-      console.log('Cleared all attendance cache')
+      logger.info('全ての勤怠キャッシュをクリア')
     }
   }
 

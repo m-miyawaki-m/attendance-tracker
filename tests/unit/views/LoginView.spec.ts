@@ -1,9 +1,6 @@
 // tests/unit/views/LoginView.spec.ts
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
 import LoginView from '@/views/LoginView.vue'
 
@@ -14,18 +11,12 @@ vi.mock('vue-router', () => ({
   }),
 }))
 
-// Vuetifyのセットアップ
-const vuetify = createVuetify({
-  components,
-  directives,
-})
-
 describe('LoginView.vue', () => {
   it('正常にレンダリングされる', () => {
     const wrapper = mount(LoginView, {
       global: {
         plugins: [
-          vuetify,
+          // Vuetifyはvitest.setup.tsでグローバル設定済み
           createTestingPinia({
             createSpy: vi.fn,
             // 必要に応じてストアの初期状態やアクションをモック

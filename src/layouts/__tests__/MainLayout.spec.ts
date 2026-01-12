@@ -2,9 +2,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, VueWrapper } from '@vue/test-utils'
-import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import { createTestingPinia } from '@pinia/testing'
 import { defineComponent, type ComponentPublicInstance } from 'vue'
 
@@ -22,12 +19,6 @@ vi.mock('vue-router', () => ({
   }),
 }))
 
-// Vuetifyのセットアップ
-const vuetify = createVuetify({
-  components,
-  directives,
-})
-
 // スロットコンテンツを持つラッパーコンポーネント
 const TestComponent = defineComponent({
   template: '<div id="slot-content">Test Slot Content</div>',
@@ -43,7 +34,7 @@ describe('MainLayout.vue', () => {
     wrapper = mount(MainLayout, {
       global: {
         plugins: [
-          vuetify,
+          // Vuetifyはvitest.setup.tsでグローバル設定済み
           createTestingPinia({
             createSpy: vi.fn,
             ...piniaOptions,
